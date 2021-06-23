@@ -27,7 +27,6 @@ from django.contrib.auth import login
 from django.contrib.auth import logout as django_logout
 from core.models import User as core_user, Contract
 from django.core.files import File
-
 APPLICATION_NAME = "core"
 
 class CustomPageNumberPagination(PageNumberPagination):
@@ -195,7 +194,6 @@ class UploadContract(generics.CreateAPIView):
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
-
 class GetRecievedContractListAPIView(generics.ListAPIView):
 
     serializer_class = serializers.ContractSerializer
@@ -256,6 +254,15 @@ class UpdateContractDataAPIView(generics.UpdateAPIView):
 
     serializer_class = serializers.ContractSerializer
     permission_classes = (IsAuthenticated,)
+
+    def get(self, request, *args, **kwargs):
+        try:
+            instance = Contract.objects.get(id=kwargs["pk"])
+            serializer = self.get_serializer(instance)
+            return Response({"status": True, "data": serializer.data}, status=status.HTTP_200_OK)
+        except:
+            return Response({"status": False, "message": "contract not found"}, status=status.HTTP_204_NO_CONTENT)
+
 
     def update(self, request, *args, **kwargs):
         #import pdb;pdb.set_trace()

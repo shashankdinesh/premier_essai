@@ -101,12 +101,18 @@ class Contract(Base):
         ("bilateral", "bilateral"),
         ("multi_party", "multi_party"),
     )
+    STATUS = (
+        ("pending", "pending"),
+        ("approved", "approved"),
+        ("rejected", "rejected")
+    )
     upload = models.FileField(upload_to = 'upload/')
     type = models.CharField(max_length=128, choices=TYPE, default="bilateral")
     other_party_user = models.ManyToManyField(User, related_name="recieved_contract")
     reviewer_user =  models.ManyToManyField(User, related_name="contract_reviewer")
     user_approved = models.ManyToManyField(User, related_name="approved_contract",blank=True)
     user_reviewed = models.ManyToManyField(User, related_name="reviewed_contract",blank=True)
+    status = models.CharField(max_length=128, choices=STATUS, default="pending")
     contract_expiry_date = models.DateField(blank=True, null=True)
     contract_update_date = models.DateField(blank=True, null=True)
 
