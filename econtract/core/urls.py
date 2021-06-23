@@ -21,6 +21,11 @@ urlpatterns = [
         name="recieved-contract"
     ),
     path(
+        "review_contract/",
+        views.GetReviewContractListAPIView.as_view(),
+        name="review-contract"
+    ),
+    path(
         "update/<int:pk>/",
         views.UpdateContractDataAPIView.as_view(),
         name="update-contract"
