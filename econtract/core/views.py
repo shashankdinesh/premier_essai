@@ -174,7 +174,7 @@ class UploadContract(generics.CreateAPIView):
     permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
-        contract_qs = Contract.objects.get(created_by=self.request.user.id)
+        contract_qs = Contract.objects.filter(created_by=self.request.user.id)
         return contract_qs
 
     def get(self, request, *args, **kwargs):
