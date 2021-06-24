@@ -106,7 +106,7 @@ class Contract(Base):
         ("approved", "approved"),
         ("rejected", "rejected")
     )
-    upload = models.FileField(upload_to = 'upload/')
+    contract_link = models.TextField(blank=True, null=True)
     type = models.CharField(max_length=128, choices=TYPE, default="bilateral")
     other_party_user = models.ManyToManyField(User, related_name="recieved_contract")
     reviewer_user =  models.ManyToManyField(User, related_name="contract_reviewer")

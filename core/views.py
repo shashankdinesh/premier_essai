@@ -188,6 +188,7 @@ class UploadContract(generics.CreateAPIView):
         return Response({"status": True, "data": serializer.data},status=status.HTTP_200_OK)
 
     def post(self, request, *args, **kwargs):
+        request.data['created_by']=request.user.id
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
