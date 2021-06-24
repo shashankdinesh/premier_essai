@@ -333,8 +333,11 @@ class UploadFileS3(generics.CreateAPIView):
 
         file = request.data.get("file", None)
         filename = file.name if file else None
+
         if file and filename:
+            logging.info(f"file name is {filename}")
             path=upload_contract(file, filename)
+            logging.info(f"file path is {path}")
             if path:
                 return Response({"status": True,"filename":filename, "path":path, "message": "Contract Uploaded Successfully"},status=status.HTTP_201_CREATED)
             else:

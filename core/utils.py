@@ -124,9 +124,11 @@ def upload_contract(filepath,filename):
             aws_secret_access_key=os.environ.get("AWS_SECRET_ACCESS_KEY"),
             region_name=os.environ.get("AWS_REGION"),
         )
+        logging.info(f"resource created syccessfully")
         bucket = resource.Bucket("e-contract-private")
         prefix = f"contract/{filename}"
         bucket.upload_fileobj(filepath, prefix)
         return "https://e-contract-private.s3-ap-southeast-1.amazonaws.com/"+prefix
-    except:
+    except Exception as e:
+        logging.info(f"exception is as follows {e}")
         return False
