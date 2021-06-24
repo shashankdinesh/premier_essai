@@ -332,11 +332,15 @@ class UploadFileS3(generics.CreateAPIView):
         #import pdb;pdb.set_trace()
 
         file = request.data.get("file", None)
-        filename = file.name
-
-        path=upload_contract(file, filename)
-        if path:
-            return Response({"status": True,"filename":filename, "path":path, "message": "Contract Uploaded Successfully"},status=status.HTTP_201_CREATED)
+        filename = file.name if file else None
+        if file and filename:
+            path=upload_contract(file, filename)
+            if path:
+                return Response({"status": True,"filename":filename, "path":path, "message": "Contract Uploaded Successfully"},status=status.HTTP_201_CREATED)
+            else:
+                return Response({"status": False, "message": "Contract Upload Failed"},
+                     status=status.HTTP_400_BAD_REQUEST)
         else:
-            return Response({"status": False, "message": "Contract Upload Failed"},
-                 status=status.HTTP_400_BAD_REQUEST)
+            return Response({"status": False, "message": "No contract Found to upload"},
+                            status=status.HTTP_400_BAD_REQUEST)
+

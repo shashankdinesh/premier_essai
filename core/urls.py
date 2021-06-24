@@ -36,8 +36,8 @@ urlpatterns = [
         name="login",
     ),
     path(
-        "upload_contract",
+        "upload_contract_file/",
         views.UploadFileS3.as_view(),
-        name="upload-contract"
+        name="upload-contract-file"
     ),
 ]
