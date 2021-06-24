@@ -124,9 +124,9 @@ def upload_contract(filepath,filename):
             aws_secret_access_key=os.environ.get("AWS_SECRET_ACCESS_KEY"),
             region_name=os.environ.get("AWS_REGION"),
         )
-        bucket = resource.Bucket("xanalia")
-        prefix = f"{filename}"
+        bucket = resource.Bucket("e-contract-private")
+        prefix = f"contract/{filename}"
         bucket.upload_fileobj(filepath, prefix)
-        return "https://xanalia.s3-ap-southeast-1.amazonaws.com/"+prefix
+        return "https://e-contract-private.s3-ap-southeast-1.amazonaws.com/"+prefix
     except:
         return False
