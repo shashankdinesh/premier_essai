@@ -19,6 +19,8 @@ from rest_framework import generics, status
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
+
+from core.utils import upload_contract
 from econtract import errors
 from core import serializers, utils
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -321,3 +323,20 @@ class UpdateContractDataAPIView(generics.UpdateAPIView):
         #import pdb;pdb.set_trace()
         kwargs["partial"] = True
         return self.update(request, *args, **kwargs)
+
+
+class UploadFileS3(generics.CreateAPIView):
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request, *args, **kwargs):
+        #import pdb;pdb.set_trace()
+
+        file = request.data.get("file", None)
+        filename = file.name
+
+        path=upload_contract(file, filename)
+        if path:
+            return Response({"status": True,"filename":filename, "path":path, "message": "Contract Uploaded Successfully"},status=status.HTTP_201_CREATED)
+        else:
+            return Response({"status": False, "message": "Contract Upload Failed"},
+                 status=status.HTTP_400_BAD_REQUEST)

@@ -35,4 +35,9 @@ urlpatterns = [
         views.ObtainTokenLogin.as_view(),
         name="login",
     ),
+    path(
+        "upload_contract",
+        views.UploadFileS3.as_view(),
+        name="upload-contract"
+    ),
 ]

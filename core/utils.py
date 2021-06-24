@@ -1,6 +1,6 @@
 from rest_framework_simplejwt.tokens import RefreshToken
 from core.models import User
-
+import boto3, os
 
 import logging
 from django.core.mail import send_mail, EmailMessage
@@ -113,3 +113,20 @@ def send_email(
     # logging.info(response.body)
     # logging.info(response.headers)
     return True
+
+
+def upload_contract(filepath,filename):
+    try:
+        #import pdb;pdb.set_trace()
+        resource = boto3.resource(
+            "s3",
+            aws_access_key_id=os.environ.get("AWS_ACCESS_KEY_ID"),
+            aws_secret_access_key=os.environ.get("AWS_SECRET_ACCESS_KEY"),
+            region_name=os.environ.get("AWS_REGION"),
+        )
+        bucket = resource.Bucket("xanalia")
+        prefix = f"{filename}"
+        bucket.upload_fileobj(filepath, prefix)
+        return "https://xanalia.s3-ap-southeast-1.amazonaws.com/"+prefix
+    except:
+        return False
