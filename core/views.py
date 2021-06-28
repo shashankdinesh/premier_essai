@@ -54,18 +54,18 @@ class RegistrationAPIView(generics.CreateAPIView):
                         "status": False,
                         "message": "Email already exists"
                     },
-                    status=status.HTTP_400_BAD_REQUEST,
+                    status=status.HTTP_200_OK,
                 )
 
         if data.get("username"):
-            data["username"] = data["username"].lower()
+            data["username"] = data["username"]
             if User.objects.filter(username=data.get("username")):
                 return Response(
                     {
                         "status": False,
                         "message": "username already exists"
                     },
-                    status=status.HTTP_400_BAD_REQUEST,
+                    status=status.HTTP_200_OK,
                 )
 
         serializer = self.get_serializer(data=data)
@@ -77,6 +77,7 @@ class RegistrationAPIView(generics.CreateAPIView):
 
         return Response(
             {
+                "message": "You have successfully Registered",
                 "status": True,
                 "AccessToken": tokens["access"],
                 "RefreshToken": tokens["refresh"],
@@ -92,13 +93,13 @@ class ObtainTokenLogin(APIView):
         if "username" not in request.data:
             logging.info(f"username not supplied")
             return Response(
-                {"status": False, "username": errors.FIELD_REQUIRED},
+                {"status": False, "message": errors.FIELD_REQUIRED},
                 status=status.HTTP_200_OK,
             )
         if "password" not in request.data:
             logging.info(f"password not supplied required")
             return Response(
-                {"status": False, "password": errors.FIELD_REQUIRED},
+                {"status": False, "message": errors.FIELD_REQUIRED},
                 status=status.HTTP_200_OK,
             )
 
@@ -107,7 +108,7 @@ class ObtainTokenLogin(APIView):
         if not user:
             logging.info(f"{user} not found")
             return Response(
-                {"status": False, "user": errors.USER_NOT_EXIST},
+                {"status": False, "message": errors.USER_NOT_EXIST},
                 status=status.HTTP_200_OK,
             )
         if not user.is_active:
