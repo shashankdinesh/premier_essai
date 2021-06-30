@@ -3,6 +3,7 @@ from datetime import datetime
 from django.contrib.auth.base_user import BaseUserManager, AbstractBaseUser
 from django.contrib.auth.models import PermissionsMixin
 from django.db import models
+from django.contrib.postgres.fields import ArrayField
 from django.utils.translation import ugettext_lazy as _
 from django_common.db_fields import JSONField
 app_name = "core"
@@ -103,18 +104,60 @@ class Contract(Base):
     )
     STATUS = (
         ("pending", "pending"),
-        ("approved", "approved"),
+        ("internal_approved", "internal_approved"),
+        ("other_party_approved", "other_party_approved"),
         ("rejected", "rejected")
     )
     contract_link = models.TextField(blank=True, null=True)
+
     type = models.CharField(max_length=128, choices=TYPE, default="bilateral")
-    other_party_user = models.ManyToManyField(User, related_name="recieved_contract")
-    reviewer_user =  models.ManyToManyField(User, related_name="contract_reviewer")
+
+    other_party_user = models.ManyToManyField(User, related_name="recieved_contract",blank=True)
+    reviewer_user = models.ManyToManyField(User, related_name="contract_reviewer",blank=True)
+
+    non_registered_other_party_user = ArrayField(models.CharField(max_length=200),default=list, blank=True)
+    non_registered_reviewer_user = ArrayField(models.CharField(max_length=200),default=list, blank=True)
+
     user_approved = models.ManyToManyField(User, related_name="approved_contract",blank=True)
-    user_reviewed = models.ManyToManyField(User, related_name="reviewed_contract",blank=True)
+    user_reviewed = models.ManyToManyField(User, related_name="reviewed_contract", blank=True)
+
+    non_registered_user_approved = ArrayField(models.CharField(max_length=200),default=list, blank=True)
+    non_registered_user_reviewed = ArrayField(models.CharField(max_length=200),default=list, blank=True)
+
+    rejected_by = ArrayField(models.CharField(max_length=200),default=list, blank=True)
+    user_rejected = models.ManyToManyField(User, related_name="rejected_contract", blank=True)
+
     status = models.CharField(max_length=128, choices=STATUS, default="pending")
     contract_expiry_date = models.DateField(blank=True, null=True)
     contract_update_date = models.DateField(blank=True, null=True)
 
     def __str__(self):
         return self.created_by.email
+
+    @staticmethod
+    def update_internal_approval_status(contract):
+        print(f"updating status for the {contract.contract_link}")
+        try:
+            non_registered_reviewer_users = contract.non_registered_reviewer_user
+            reviewer_users = contract.reviewer_user.all()
+
+            if not non_registered_reviewer_users and not reviewer_users:
+                contract.status = "internal_approved"
+                contract.save()
+        except Exception as e:
+            print(f"exception in updating status {contract.contract_link} : {e}")
+            return False
+
+    @staticmethod
+    def update_other_party_approval_status(contract):
+        print(f"updating status for the {contract.contract_link}")
+        try:
+
+            other_party_users = contract.other_party_user.all()
+            non_registered_other_party_users = contract.non_registered_other_party_user
+            if not other_party_users and not non_registered_other_party_users:
+                contract.status = "other_party_approved"
+                contract.save()
+        except Exception as e:
+            print(f"exception in updating status {contract.contract_link} : {e}")
+            return False

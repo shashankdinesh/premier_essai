@@ -9,7 +9,7 @@ from django.shortcuts import render
 from datetime import datetime
 import logging
 import random
-
+import copy
 from django.contrib.auth import authenticate
 
 # Create your views here.
@@ -20,7 +20,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from core.utils import upload_contract
+from core.utils import upload_contract, listbucketfile, delete_contract_data, delete_file, check_user_validity
 from econtract import errors
 from core import serializers, utils
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -72,6 +72,11 @@ class RegistrationAPIView(generics.CreateAPIView):
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
         logging.info(user.__dict__)
+        update_status = serializer.update_contracts_details(serializer.instance)
+        if update_status:
+            logging.info("Contract details for registered user updated successfully")
+        else:
+            logging.info("Contract details updation for registered user failed")
 
         tokens = utils.get_tokens_for_user(user)
 
@@ -191,50 +196,68 @@ class UploadContract(generics.CreateAPIView):
         return Response({"status": True, "data": serializer.data},status=status.HTTP_200_OK)
 
     def post(self, request, *args, **kwargs):
+        other_party_ids,reviewer_ids=[],[]
         request.data['created_by']=request.user.id
+        non_registered_other_users = copy.copy(request.data['non_registered_other_party_user'])
+        non_registered_reviewer =  copy.copy(request.data['non_registered_reviewer_user'])
+        for email in non_registered_other_users:
+            if User.objects.filter(email=email):
+                other_party_ids.append(User.objects.filter(email=email)[0].id)
+                request.data['non_registered_other_party_user'].remove(email)
+
+        request.data['other_party_user'] = other_party_ids
+
+        for email in non_registered_reviewer:
+            if User.objects.filter(email=email):
+                reviewer_ids.append(User.objects.filter(email=email)[0].id)
+                request.data['non_registered_reviewer_user'].remove(email)
+
+        request.data['reviewer_user'] = reviewer_ids
+
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
-class GetRecievedContractListAPIView(generics.ListAPIView):
+# class GetRecievedContractListAPIView(generics.ListAPIView):
+#
+#     serializer_class = serializers.ContractSerializer
+#     pagination_class = CustomPageNumberPagination
+#     permission_classes = (IsAuthenticated,)
+#
+#     def get_queryset(self):
+#         recieved_contract_qs = User.objects.get(id=self.request.user.id).recieved_contract.all()
+#         return recieved_contract_qs
+#
+#     def get(self, request, *args, **kwargs):
+#         #import pdb;pdb.set_trace()
+#
+#         queryset = self.get_queryset()
+#         if queryset:
+#             page = self.paginate_queryset(queryset)
+#             if page is not None:
+#                 serializer = self.get_serializer(page, many=True)
+#                 return self.get_paginated_response(serializer.data)
+#             serializer = self.get_serializer(queryset, many=True)
+#             return Response(
+#                 {"status": True, "data": serializer.data}, status=status.HTTP_200_OK
+#             )
+#         else:
+#             return Response(
+#                 {"status": True, "data": []}, status=status.HTTP_204_NO_CONTENT
+#             )
 
+
+class GetContractListAPIView(generics.ListAPIView):
     serializer_class = serializers.ContractSerializer
     pagination_class = CustomPageNumberPagination
     permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
-        recieved_contract_qs = User.objects.get(id=self.request.user.id).recieved_contract.all()
-        return recieved_contract_qs
-
-    def get(self, request, *args, **kwargs):
-        #import pdb;pdb.set_trace()
-
-        queryset = self.get_queryset()
-        if queryset:
-            page = self.paginate_queryset(queryset)
-            if page is not None:
-                serializer = self.get_serializer(page, many=True)
-                return self.get_paginated_response(serializer.data)
-            serializer = self.get_serializer(queryset, many=True)
-            return Response(
-                {"status": True, "data": serializer.data}, status=status.HTTP_200_OK
-            )
-        else:
-            return Response(
-                {"status": True, "data": []}, status=status.HTTP_204_NO_CONTENT
-            )
-
-
-class GetReviewContractListAPIView(generics.ListAPIView):
-    serializer_class = serializers.ContractSerializer
-    pagination_class = CustomPageNumberPagination
-    permission_classes = (IsAuthenticated,)
-
-    def get_queryset(self):
-        review_contract_qs = User.objects.get(id=self.request.user.id).contract_reviewer.all()
-        return review_contract_qs
+        review_contract_qs = User.objects.get(id=self.request.user.id).contract_reviewer.filter(status="pending")
+        recieved_contract_qs = User.objects.get(id=self.request.user.id).recieved_contract.filter(status="internal_approved")
+        return review_contract_qs.union(recieved_contract_qs)
 
     def get(self, request, *args, **kwargs):
         # import pdb;pdb.set_trace()
@@ -254,10 +277,9 @@ class GetReviewContractListAPIView(generics.ListAPIView):
                 {"status": True, "data": []}, status=status.HTTP_204_NO_CONTENT
             )
 
-class UpdateContractDataAPIView(generics.UpdateAPIView):
 
+class UpdateContractDataAPIView(generics.UpdateAPIView):
     serializer_class = serializers.ContractSerializer
-    permission_classes = (IsAuthenticated,)
 
     def get(self, request, *args, **kwargs):
         try:
@@ -269,9 +291,6 @@ class UpdateContractDataAPIView(generics.UpdateAPIView):
 
 
     def update(self, request, *args, **kwargs):
-        #import pdb;pdb.set_trace()
-        approving_user = request.data.get('user_approved',None)
-        approving_reviewer = request.data.get('user_reviewed',None)
         updated_contract = request.data.get('upload',None)
         update_contract_date = request.data.get('contract_update_date',None)
 
@@ -281,24 +300,8 @@ class UpdateContractDataAPIView(generics.UpdateAPIView):
         partial = kwargs.pop("partial", False)
         try:
             instance = Contract.objects.get(id=kwargs["pk"])
-            if approving_user:
-                valid_approvers = [inst.id for inst in instance.other_party_user.all()]
-                for user in approving_user:
-                    if not user in valid_approvers:
-                        return Response(
-                            {"status": False, "message": f"approving user {user} is not in other party user list {valid_approvers}"}, status=status.HTTP_400_BAD_REQUEST
-
-                        )
-            if approving_reviewer:
-                valid_reviewers = [inst.id for inst in instance.reviewer_user.all()]
-                for user in approving_reviewer:
-                    if not user in valid_reviewers:
-                        return Response(
-                            {"status": False, "message": f"Reviewing user {user} is not in Review user list {valid_reviewers}"},
-                            status=status.HTTP_400_BAD_REQUEST
-
-                        )
-
+            valid_approvers = [inst.id for inst in instance.other_party_user.all()]
+            valid_reviewers = [inst.id for inst in instance.reviewer_user.all()]
         except Exception as ex:
             logging.exception(f"exception in fetcing instance {ex}")
             return Response(
@@ -309,7 +312,10 @@ class UpdateContractDataAPIView(generics.UpdateAPIView):
             instance, data=request.data, partial=partial,
         )
         if serializer.is_valid(raise_exception=True):
-            serializer.save()
+            serializer.update(serializer.instance,serializer.validated_data)
+            serializer.remove_user(request,serializer.instance,valid_approvers,valid_reviewers)
+            Contract.update_internal_approval_status(serializer.instance)
+            Contract.update_other_party_approval_status(serializer.instance)
             return Response(
                 {"status": True, "message": "Data Saved Successfully"},
                 status=status.HTTP_200_OK,
@@ -346,5 +352,48 @@ class UploadFileS3(generics.CreateAPIView):
                      status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response({"status": False, "message": "No contract Found to upload"},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+class DeleteFileS3(generics.CreateAPIView):
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request, *args, **kwargs):
+        base_url = "https://e-contract-private.s3-ap-southeast-1.amazonaws.com/"
+        file_urls = request.data.get("link", None)
+        try:
+            if file_urls:
+                prefixes = [{'key':file_url.split(base_url)[-1]} for file_url in file_urls]
+                delete_file(prefixes=prefixes)
+                return Response({"status": True, "message": "File deleted Successfully"},
+                                status=status.HTTP_400_BAD_REQUEST)
+            else:
+                return Response({"status": False, "message": "No link Found to delete"},
+                                status=status.HTTP_400_BAD_REQUEST)
+
+        except Exception as e:
+            return Response({"status": False, "message": e},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+class ListFileS3(generics.GenericAPIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, *args, **kwargs):
+        prefix = request.data.get("prefix", None)
+        try:
+            if prefix:
+                objs = listbucketfile(prefix)
+                if objs:
+                    return Response({"status": True, "data": objs},
+                                    status=status.HTTP_200_OK)
+                else:
+                    return Response({"status": True, "message": "empty folder"},
+                                    status=status.HTTP_200_OK)
+
+            else:
+                return Response({"status": False, "message": "folder link not provided"},
+                                status=status.HTTP_400_BAD_REQUEST)
+
+        except Exception as e:
+            return Response({"status": False, "message": e},
                             status=status.HTTP_400_BAD_REQUEST)
 
