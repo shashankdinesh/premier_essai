@@ -20,5 +20,12 @@ from core import views
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("", include("core.urls")),
+    path(
+        "api/",
+        include(
+            [
+                path("", include("core.urls")),
+            ]
+        )
+    ),
 ]
