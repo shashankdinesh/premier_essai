@@ -139,14 +139,31 @@ USE_L10N = True
 
 USE_TZ = True
 
-STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
-# Static files (CSS, JavaScript, Images)
-STATICFILES_LOCATION = "static"
-# https://docs.djangoproject.com/en/3.2/howto/static-files/
+STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 
-STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(os.path.dirname(BASE_DIR), 'static_root')
+
+# LOG FILE DIRECTORY
+LOG_DIR = os.path.join(BASE_DIR, 'log')
+if not os.path.exists(LOG_DIR):
+    os.makedirs(LOG_DIR)
+
+AWS_STORAGE_BUCKET_NAME = os.environ.get('AWS_STORAGE_BUCKET_NAME')
+AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
+AWS_REGION = os.environ.get('AWS_REGION')
+AWS_S3_CUSTOM_DOMAIN = f's3-ap-southeast-1.amazonaws.com/{AWS_STORAGE_BUCKET_NAME}'
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
+
+STATICFILES_LOCATION = "static"
+STATIC_URL = "https://%s/%s/" % (AWS_S3_CUSTOM_DOMAIN, STATICFILES_LOCATION)
+
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+SENDGRID_API_KEY = os.environ.get('SENDGRID_API_KEY','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')
+
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

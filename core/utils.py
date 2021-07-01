@@ -1,7 +1,7 @@
 from rest_framework_simplejwt.tokens import RefreshToken
 from core.models import User
 import boto3, os
-
+from django.conf import settings
 import logging
 from django.core.mail import send_mail, EmailMessage
 import json, requests, logging
@@ -18,10 +18,6 @@ from sendgrid.helpers.mail import (
     Disposition,
     ContentId,
 )
-
-
-
-
 
 def get_tokens_for_user(user):
     #import pdb;pdb.set_trace()
@@ -215,6 +211,7 @@ def contract_mail_body(senders_mail_id, file_url, confirmation_url, expiration_d
                 -----------------------------------------------------------<br><br>
                 ＊クラウドコントラクトの推奨ブラウザはGoogle Chromeとなっております。<br>"""
 
+    #suject = f"【社内確認】「{}」の確認依頼が届いております"
     return msg_body
 
 

@@ -9,6 +9,7 @@ django-cors-headers==3.7.0
 django-widget-tweaks==1.4.8
 djangorestframework==3.12.4
 djangorestframework-simplejwt==4.7.1
+django-storages==1.11.1
 idna==2.10
 jmespath==0.10.0
 psycopg2-binary==2.8.6
