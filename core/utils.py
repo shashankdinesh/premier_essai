@@ -54,48 +54,20 @@ def send_email(
     pdf_file=None,
     sender_name="",
 ):
-
     if "123456@gmail.com" in to_emails:
         return
-
     if type(to_emails) == str:
         to_emails = [to_emails]
-
     message = Mail(
         from_email=(from_email, sender_name),
         to_emails=to_emails,
         subject=email_subject,
         html_content=html_content,
     )
-    if pdf_file:
-        # base64File = base64.b64encode(requests.get(pdf_file.url).content).decode()
-        # attachment = Attachment()
-        # attachment.file_content = FileContent(base64File)
-        # attachment.file_type = FileType('application/pdf')
-        # attachment.file_name = FileName(pdf_file_name)
-        # attachment.disposition = Disposition('attachment')
-        # attachment.content_id = ContentId('Example Content ID')
-        # message.attachment = attachment
-
-        attachment = Attachment()
-        if ".csv" in pdf_file_name:
-            base64File = base64.b64encode(pdf_file).decode()
-            attachment.file_type = FileType("text/csv")
-        else:
-
-            base64File = base64.b64encode(requests.get(pdf_file).content).decode()
-            attachment.file_type = FileType("application/pdf")
-
-        attachment.file_content = FileContent(base64File)
-        attachment.file_name = FileName(pdf_file_name)
-        attachment.disposition = Disposition("attachment")
-        attachment.content_id = ContentId("Example Content ID")
-        message.attachment = attachment
     try:
         sendgrid_client = SendGridAPIClient(settings.SENDGRID_API_KEY)
         response = sendgrid_client.send(message)
         logging.info(f"Email sent from sendgrid status {response.status_code}")
-
     except Exception as e:
         logging.info(
             "===========================Send email Error======================"
@@ -109,7 +81,6 @@ def send_email(
     # logging.info(response.body)
     # logging.info(response.headers)
     return True
-
 
 def get_bucket():
     resource = boto3.resource(
@@ -175,25 +146,28 @@ def listbucketfile(prefix):
         return False
 
 
-def contract_mail_body(senders_mail_id, file_url, confirmation_url, expiration_date, register_url):
+def contract_mail_body(
+        senders_mail_id="support@noborders.net",
+        file_name="sample_1.pdf",
+        confirmation_url="sample_2.pdf",
+        expiration_date="28-08-2021",
+        register_url="www.apply.com"
+):
     msg_body = f"""Hi,<br>
                 <br>
                 書類の確認依頼が届きました。<br>
-
                 ご確認をお願いいたします。
-
                 <br>
                 <br>
                 <br>
                 -----------------------------------------------------------<br>
                 <br>
                 ・送信元メールアドレス：{senders_mail_id}<br>
-                ・書類名： {file_url}<br>
+                ・書類名： {file_name}<br>
                 ・確認用URL： {confirmation_url}<br>
                 ・URL有効期限： {expiration_date}<br>
                 <br>
                 <br>
-
                 有効期限を過ぎてしまった場合は送信者に再配信を依頼してください。<br>
                 <br>
                 <br>
@@ -204,15 +178,14 @@ def contract_mail_body(senders_mail_id, file_url, confirmation_url, expiration_d
                 誤送付のメールを開示したり、自己利用のために用いることを固く禁じます。<br>
                 <br>
                 <br>
-                無料会員登録は、こちらから<br>
+                会員登録はこちら<br>
                 {register_url}<br>
                <br>
                <br>
                 -----------------------------------------------------------<br><br>
                 ＊クラウドコントラクトの推奨ブラウザはGoogle Chromeとなっております。<br>"""
-
-    #suject = f"【社内確認】「{}」の確認依頼が届いております"
-    return msg_body
+    subject = f"【社内確認】「{file_name}」の確認依頼が届いております"
+    return msg_body,subject
 
 
 def check_user_validity(approving_user,approving_reviewer,non_registered_user_approved,non_registered_user_reviewed,contract_rejected_by,instance,valid_approvers,valid_reviewers):

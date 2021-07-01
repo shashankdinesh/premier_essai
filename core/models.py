@@ -127,6 +127,8 @@ class Contract(Base):
     rejected_by = ArrayField(models.CharField(max_length=200),default=list, blank=True)
     user_rejected = models.ManyToManyField(User, related_name="rejected_contract", blank=True)
 
+    mail_sent = ArrayField(models.CharField(max_length=200),default=list, blank=True)
+
     status = models.CharField(max_length=128, choices=STATUS, default="pending")
     contract_expiry_date = models.DateField(blank=True, null=True)
     contract_update_date = models.DateField(blank=True, null=True)

@@ -217,6 +217,11 @@ class UploadContract(generics.CreateAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
+        mail_sent,msg = serializer.mail_contract_agreement_link(serializer.instance)
+        if mail_sent:
+            logging.info(msg)
+        else:
+            logging.info(msg)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
@@ -316,6 +321,11 @@ class UpdateContractDataAPIView(generics.UpdateAPIView):
             serializer.remove_user(request,serializer.instance,valid_approvers,valid_reviewers)
             Contract.update_internal_approval_status(serializer.instance)
             Contract.update_other_party_approval_status(serializer.instance)
+            mail_sent, msg = serializer.mail_contract_agreement_link(serializer.instance)
+            if mail_sent:
+                logging.info(msg)
+            else:
+                logging.info(msg)
             return Response(
                 {"status": True, "message": "Data Saved Successfully"},
                 status=status.HTTP_200_OK,

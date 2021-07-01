@@ -6,6 +6,7 @@ from rest_framework import serializers
 from rest_framework.serializers import raise_errors_on_nested_writes
 
 from core.models import Contract
+from core.utils import contract_mail_body, send_email
 from econtract import errors
 from rest_framework.utils import model_meta
 
@@ -13,6 +14,62 @@ class ContractSerializer(serializers.ModelSerializer):
     class Meta:
         model = Contract
         fields = "__all__"
+
+    def mail_contract_agreement_link(self, contract):
+        msg_body, subject = contract_mail_body(
+            senders_mail_id=contract.created_by.email,
+            file_name=contract.contract_link.split('/')[-1],
+            confirmation_url="sample_2.pdf",
+            expiration_date="28-08-2021",
+            register_url="www.apply.com"
+        )
+        user_already_sent_mail = contract.mail_sent
+        non_registered_other_party_users = [mail_id for mail_id in contract.non_registered_other_party_user if
+                                            not mail_id in user_already_sent_mail]
+        non_registered_reviewer_users = [mail_id for mail_id in contract.non_registered_reviewer_user if
+                                         not mail_id in user_already_sent_mail]
+        other_party_users = [user.email for user in contract.other_party_user.all() if
+                             not user.email in user_already_sent_mail]
+        reviewer_users = [user.email for user in contract.reviewer_user.all() if
+                          not user.email in user_already_sent_mail]
+        reviewer_users.extend(non_registered_reviewer_users)
+        other_party_users.extend(non_registered_other_party_users)
+        if contract.status == 'pending':
+            if reviewer_users:
+                mail_sent = send_email(
+                    from_email=contract.created_by.email,
+                    to_emails=reviewer_users,
+                    email_subject=subject,
+                    html_content=msg_body,
+                    sender_name=contract.created_by.first_name + " " + contract.created_by.last_name
+                )
+                if mail_sent:
+                    contract.mail_sent.extend(reviewer_users)
+                    contract.save()
+                    return True, "Mail send Successfully to all reviewers"
+                else:
+                    return False, "Sending Mail to all reviewers Failed "
+            else:
+                return True, "Mail already send to all reviewers"
+        elif contract.status == 'internal_approved':
+            if other_party_users:
+                mail_sent = send_email(
+                    from_email=contract.created_by.email,
+                    to_emails=other_party_users,
+                    email_subject=subject,
+                    html_content=msg_body,
+                    sender_name=contract.created_by.first_name + " " + contract.created_by.last_name
+                )
+                if mail_sent:
+                    contract.mail_sent.extend(other_party_users)
+                    contract.save()
+                    return True, "Mail send Successfully to all other party users"
+                else:
+                    return False, "Sending Mail to all other party users Failed "
+            else:
+                return True, "Mail already send to all other party users"
+        else:
+            return True, "Mail already send to all other party users"
 
     def update(self, instance, validated_data):
         #import pdb;pdb.set_trace()
