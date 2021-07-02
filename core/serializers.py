@@ -160,14 +160,24 @@ class UserCreateSerializer(serializers.ModelSerializer):
             for contract in contracts:
                 if registered_user.email in contract.non_registered_other_party_user:
                     contract.other_party_user.add(registered_user.id)
+                    contract.non_registered_other_party_user.remove(registered_user.email)
+                    contract.save()
                 if registered_user.email in contract.non_registered_reviewer_user:
                     contract.reviewer_user.add(registered_user.id)
+                    contract.non_registered_reviewer_user.remove(registered_user.email)
+                    contract.save()
                 if registered_user.email in contract.non_registered_user_approved:
                     contract.user_approved.add(registered_user.id)
+                    contract.non_registered_user_approved.remove(registered_user.email)
+                    contract.save()
                 if registered_user.email in contract.non_registered_user_reviewed:
                     contract.user_reviewed.add(registered_user.id)
+                    contract.non_registered_user_reviewed.remove(registered_user.email)
+                    contract.save()
                 if registered_user.email in contract.rejected_by:
                     contract.user_rejected.add(registered_user.id)
+                    contract.rejected_by.remove(registered_user.email)
+                    contract.save()
             return True
         except:
             return False

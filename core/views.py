@@ -186,14 +186,21 @@ class UploadContract(generics.CreateAPIView):
 
     def get(self, request, *args, **kwargs):
         queryset = self.get_queryset()
+        if queryset:
+            try:
+                page = self.paginate_queryset(queryset)
+                if page is not None:
+                    serializer = self.get_serializer(page, many=True)
+                    return self.get_paginated_response(serializer.data)
 
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-
-        serializer = self.get_serializer(queryset, many=True)
-        return Response({"status": True, "data": serializer.data},status=status.HTTP_200_OK)
+                serializer = self.get_serializer(queryset, many=True)
+                return Response({"status": True, "data": serializer.data},status=status.HTTP_200_OK)
+            except Exception as e:
+                logging.info(e)
+                return Response({"status": False, "message": e}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            logging.info("data not found")
+            return Response({"status": False, "message": "Data Not Found"}, status=status.HTTP_204_NO_CONTENT)
 
     def post(self, request, *args, **kwargs):
         other_party_ids,reviewer_ids=[],[]
