@@ -106,7 +106,8 @@ class Contract(Base):
         ("pending", "pending"),
         ("internal_approved", "internal_approved"),
         ("other_party_approved", "other_party_approved"),
-        ("rejected", "rejected")
+        ("reviewer_rejected", "reviewer_rejected"),
+        ("other_party_rejected", "other_party_rejected")
     )
     contract_link = models.TextField(blank=True, null=True)
 

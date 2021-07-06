@@ -129,11 +129,11 @@ class ContractSerializer(serializers.ModelSerializer):
                 try:
                     if email in contract.non_registered_reviewer_user:
                         contract.non_registered_reviewer_user.remove(email)
-                        contract.status = 'rejected'
+                        contract.status = 'reviewer_rejected'
                         contract.save()
                     elif email in contract.non_registered_other_party_user:
                         contract.non_registered_other_party_user.remove(email)
-                        contract.status = 'rejected'
+                        contract.status = 'other_party_rejected'
                         contract.save()
                 except:
                     pass
@@ -141,11 +141,11 @@ class ContractSerializer(serializers.ModelSerializer):
             for user_id in user_rejected_contract:
                 if user_id in valid_approvers:
                     contract.other_party_user.remove(User.objects.get(id=user_id))
-                    contract.status = 'rejected'
+                    contract.status = 'other_party_rejected'
                     contract.save()
                 elif user_id in valid_reviewers:
                     contract.reviewer_user.remove(User.objects.get(id=user_id))
-                    contract.status = 'rejected'
+                    contract.status = 'reviewer_rejected'
                     contract.save()
 
 
