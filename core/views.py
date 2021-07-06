@@ -251,7 +251,7 @@ class GetContractListAPIView(generics.ListAPIView):
         review_contract_qs = User.objects.get(id=self.request.user.id).contract_reviewer.filter(status=status)
         return review_contract_qs
 
-    def get(self, request, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
         # import pdb;pdb.set_trace()
         queryset = self.get_queryset()
         if queryset:
