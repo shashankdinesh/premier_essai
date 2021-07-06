@@ -5,7 +5,7 @@ from django.conf import settings
 import logging
 from django.core.mail import send_mail, EmailMessage
 import json, requests, logging
-
+import requests
 import base64
 import os
 from sendgrid.sendgrid import SendGridAPIClient
@@ -18,6 +18,16 @@ from sendgrid.helpers.mail import (
     Disposition,
     ContentId,
 )
+
+def getpresignedUrl(bucket='e-contract-private',key='contract/sample_1.pdf'):
+    s3_client = boto3.client(
+        "s3",
+        aws_access_key_id=os.environ.get("AWS_ACCESS_KEY_ID"),
+        aws_secret_access_key=os.environ.get("AWS_SECRET_ACCESS_KEY"),
+        region_name=os.environ.get("AWS_REGION"),
+    )
+    response = s3_client.generate_presigned_url('get_object', Params={'Bucket':bucket, 'Key':key})
+    return response
 
 def get_tokens_for_user(user):
     #import pdb;pdb.set_trace()
@@ -101,7 +111,8 @@ def upload_contract(filepath,filename):
         prefix = f"contract/{filename}"
         bucket = get_bucket()
         bucket.upload_fileobj(filepath, prefix)
-        return "https://e-contract-private.s3-ap-southeast-1.amazonaws.com/"+prefix
+        presigned_url = getpresignedUrl(bucket='e-contract-private',key=prefix)
+        return presigned_url
     except Exception as e:
         logging.info(f"exception is as follows {e}")
         return False
@@ -225,7 +236,6 @@ def check_user_validity(approving_user,approving_reviewer,non_registered_user_ap
             if not contract_rejected_by in instance.non_registered_reviewer_user and not contract_rejected_by in instance.non_registered_other_party_user:
                 return {"status": False,
                         "message": f"{contract_rejected_by} is neither in non registered reviewer nor in non registered other party users"}
-
 
 
 

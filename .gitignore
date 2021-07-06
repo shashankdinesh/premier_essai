@@ -146,5 +146,6 @@ cronjob.log
 ##Editor Files##
 .vscode
 .idea/*
+*/.idea/*
 log
 
