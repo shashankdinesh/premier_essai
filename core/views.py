@@ -232,34 +232,6 @@ class UploadContract(generics.CreateAPIView):
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
-# class GetRecievedContractListAPIView(generics.ListAPIView):
-#
-#     serializer_class = serializers.ContractSerializer
-#     pagination_class = CustomPageNumberPagination
-#     permission_classes = (IsAuthenticated,)
-#
-#     def get_queryset(self):
-#         recieved_contract_qs = User.objects.get(id=self.request.user.id).recieved_contract.all()
-#         return recieved_contract_qs
-#
-#     def get(self, request, *args, **kwargs):
-#         #import pdb;pdb.set_trace()
-#
-#         queryset = self.get_queryset()
-#         if queryset:
-#             page = self.paginate_queryset(queryset)
-#             if page is not None:
-#                 serializer = self.get_serializer(page, many=True)
-#                 return self.get_paginated_response(serializer.data)
-#             serializer = self.get_serializer(queryset, many=True)
-#             return Response(
-#                 {"status": True, "data": serializer.data}, status=status.HTTP_200_OK
-#             )
-#         else:
-#             return Response(
-#                 {"status": True, "data": []}, status=status.HTTP_204_NO_CONTENT
-#             )
-
 
 class GetContractListAPIView(generics.ListAPIView):
     serializer_class = serializers.ContractSerializer
@@ -267,13 +239,20 @@ class GetContractListAPIView(generics.ListAPIView):
     permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
-        review_contract_qs = User.objects.get(id=self.request.user.id).contract_reviewer.filter(status="pending")
-        recieved_contract_qs = User.objects.get(id=self.request.user.id).recieved_contract.filter(status="internal_approved")
-        return review_contract_qs.union(recieved_contract_qs)
+        status = self.request.data.get('status', None)
+        if not status:
+            return Response(
+                {"status": False, "message": 'Please provide status'}, status=status.HTTP_400_BAD_REQUEST
+            )
+        if not status in ['pending','internal_approved','other_party_approved','rejected']:
+            return Response(
+                {"status": False, "message": f"Status must be one of the following 'pending','internal_approved','other_party_approved','rejected' not {status}"}, status=status.HTTP_400_BAD_REQUEST
+            )
+        review_contract_qs = User.objects.get(id=self.request.user.id).contract_reviewer.filter(status=status)
+        return review_contract_qs
 
     def get(self, request, *args, **kwargs):
         # import pdb;pdb.set_trace()
-
         queryset = self.get_queryset()
         if queryset:
             page = self.paginate_queryset(queryset)

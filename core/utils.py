@@ -104,14 +104,12 @@ def get_bucket():
 
 def upload_contract(filepath,filename):
     try:
-        #import pdb;pdb.set_trace()
-
-        logging.info(f"resource created syccessfully")
-
         prefix = f"contract/{filename}"
         bucket = get_bucket()
         bucket.upload_fileobj(filepath, prefix)
+        logging.info("file uploaded success fully")
         presigned_url = getpresignedUrl(bucket='e-contract-private',key=prefix)
+        logging.info("presigned url generated")
         return presigned_url
     except Exception as e:
         logging.info(f"exception is as follows {e}")
@@ -236,7 +234,3 @@ def check_user_validity(approving_user,approving_reviewer,non_registered_user_ap
             if not contract_rejected_by in instance.non_registered_reviewer_user and not contract_rejected_by in instance.non_registered_other_party_user:
                 return {"status": False,
                         "message": f"{contract_rejected_by} is neither in non registered reviewer nor in non registered other party users"}
-
-
-
-
