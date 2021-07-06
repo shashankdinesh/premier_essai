@@ -15,13 +15,13 @@ class ContractSerializer(serializers.ModelSerializer):
         model = Contract
         fields = "__all__"
 
-    def mail_contract_agreement_link(self, contract):
+    def mail_contract_agreement_link(self, contract,confirmation_url='sample_2.pdf',expiration_date="28-08-2021",register_url="www.apply.com"):
         msg_body, subject = contract_mail_body(
             senders_mail_id=contract.created_by.email,
             file_name=contract.contract_link.split('/')[-1],
-            confirmation_url="sample_2.pdf",
-            expiration_date="28-08-2021",
-            register_url="www.apply.com"
+            confirmation_url=confirmation_url,
+            expiration_date=expiration_date,
+            register_url=register_url
         )
         user_already_sent_mail = contract.mail_sent
         non_registered_other_party_users = [mail_id for mail_id in contract.non_registered_other_party_user if

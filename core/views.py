@@ -238,22 +238,20 @@ class GetContractListAPIView(generics.ListAPIView):
     pagination_class = CustomPageNumberPagination
     permission_classes = (IsAuthenticated,)
 
-    def get_queryset(self):
-        status = self.request.data.get('status', None)
-        if not status:
+    def post(self, request, *args, **kwargs):
+        # import pdb;pdb.set_trace()
+        contract_status = self.request.data.get('status', None)
+        if not contract_status:
             return Response(
                 {"status": False, "message": 'Please provide status'}, status=status.HTTP_400_BAD_REQUEST
             )
-        if not status in ['pending','internal_approved','other_party_approved','rejected']:
+        if not contract_status in ['pending', 'internal_approved', 'other_party_approved', 'rejected']:
             return Response(
-                {"status": False, "message": f"Status must be one of the following 'pending','internal_approved','other_party_approved','rejected' not {status}"}, status=status.HTTP_400_BAD_REQUEST
+                {"status": False,
+                 "message": f"Status must be one of the following 'pending','internal_approved','other_party_approved','rejected' not {contract_status}"},
+                status=status.HTTP_400_BAD_REQUEST
             )
-        review_contract_qs = User.objects.get(id=self.request.user.id).contract_reviewer.filter(status=status)
-        return review_contract_qs
-
-    def post(self, request, *args, **kwargs):
-        # import pdb;pdb.set_trace()
-        queryset = self.get_queryset()
+        queryset = User.objects.get(id=self.request.user.id).contract_reviewer.filter(status=contract_status)
         if queryset:
             page = self.paginate_queryset(queryset)
             if page is not None:
