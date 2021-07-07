@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/3.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
-
+import datetime
 from pathlib import Path
 import os
 from dotenv import load_dotenv
@@ -102,6 +102,8 @@ REST_FRAMEWORK = {
     ),
 }
 SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': datetime.timedelta(days=1),
+    'REFRESH_TOKEN_LIFETIME': datetime.timedelta(days=1),
     'AUTH_HEADER_TYPES': ('JWT',),
 }
 
