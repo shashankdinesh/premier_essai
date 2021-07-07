@@ -180,12 +180,11 @@ class UploadContract(generics.CreateAPIView):
     pagination_class = CustomPageNumberPagination
     permission_classes = (IsAuthenticated,)
 
-    def get_queryset(self):
-        contract_qs = Contract.objects.filter(created_by=self.request.user.id)
-        return contract_qs
-
     def get(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
+        contract_status = self.request.GET.get('status',None)
+        if not contract_status:
+            return Response({"status": False, "message": "status not provided"}, status=status.HTTP_400_BAD_REQUEST)
+        queryset = Contract.objects.filter(created_by=self.request.user.id, status=contract_status)
         if queryset:
             try:
                 page = self.paginate_queryset(queryset)
