@@ -19,14 +19,14 @@ from sendgrid.helpers.mail import (
     ContentId,
 )
 
-def getpresignedUrl(bucket='e-contract-private',key='contract/sample_1.pdf'):
+def getpresignedUrl(bucket='e-contract-private',key='contract/sample.pdf'):
     s3_client = boto3.client(
         "s3",
         aws_access_key_id=os.environ.get("AWS_ACCESS_KEY_ID"),
         aws_secret_access_key=os.environ.get("AWS_SECRET_ACCESS_KEY"),
         region_name=os.environ.get("AWS_REGION"),
     )
-    response = s3_client.generate_presigned_url('get_object', Params={'Bucket':bucket, 'Key':key})
+    response = s3_client.generate_presigned_url('get_object', Params={'Bucket':bucket, 'Key':key,'ResponseContentType': "application/pdf",})
     return response
 
 def get_tokens_for_user(user):
@@ -234,3 +234,17 @@ def check_user_validity(approving_user,approving_reviewer,non_registered_user_ap
             if not contract_rejected_by in instance.non_registered_reviewer_user and not contract_rejected_by in instance.non_registered_other_party_user:
                 return {"status": False,
                         "message": f"{contract_rejected_by} is neither in non registered reviewer nor in non registered other party users"}
+
+
+#
+# def testing_mail():
+#     #from django.core.mail import BadHeaderError, send_mail
+#     from django.core.mail import EmailMessage
+#     #send_mail("subject", "message", 'guptashashank89@yahoo.com', ['shashankgupta11081991@gmail.com',"contractest_3@yahoo.com","contracttest_4@yahoo.com"])
+#     email = EmailMessage(
+#         'Hello',
+#         'Body goes here',
+#         'guptashashank89@yahoo.com',
+#         ['shashankgupta11081991@gmail.com',"contractest_3@yahoo.com","contracttest_4@yahoo.com"]
+#     )
+#     email.send(fail_silently=False)
