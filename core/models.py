@@ -110,6 +110,7 @@ class Contract(Base):
         ("other_party_rejected", "other_party_rejected")
     )
     contract_link = models.TextField(blank=True, null=True)
+    contract_name = models.CharField(max_length=128,blank=True, null=True)
 
     type = models.CharField(max_length=128, choices=TYPE, default="bilateral")
 
