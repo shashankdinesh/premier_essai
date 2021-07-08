@@ -8,6 +8,7 @@ import json, requests, logging
 import requests
 import base64
 import os
+from django.utils.html import strip_tags
 from sendgrid.sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import (
     Mail,
@@ -55,7 +56,7 @@ def refresh_tokens_for_user(refresh_token):
     tokens = get_tokens_for_user(user)
     return tokens
 
-def send_email(
+def send_contract_email(
     from_email,
     to_emails,
     email_subject,
@@ -71,11 +72,12 @@ def send_email(
 
     try:
         from_email = 'support@xigolo.com'
-        email = EmailMessage(
-            email_subject,
-            html_content,
-            from_email,
-            to_emails,
+        email = send_mail(
+            subject = email_subject,
+            html_message=html_content,
+            message=strip_tags(html_content),
+            from_email = from_email,
+            recipient_list = to_emails,
         )
         response = email.send(fail_silently=False)
         logging.info(f"Email sent from sendgrid status {response.status_code}")

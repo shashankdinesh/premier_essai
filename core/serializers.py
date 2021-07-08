@@ -6,7 +6,7 @@ from rest_framework import serializers
 from rest_framework.serializers import raise_errors_on_nested_writes
 
 from core.models import Contract
-from core.utils import contract_mail_body, send_email, getpresignedUrl
+from core.utils import contract_mail_body, getpresignedUrl, send_contract_email
 from econtract import errors
 from rest_framework.utils import model_meta
 from django.core.mail import EmailMessage
@@ -42,7 +42,7 @@ class ContractSerializer(serializers.ModelSerializer):
         other_party_users.extend(non_registered_other_party_users)
         if contract.status == 'pending':
             if reviewer_users:
-                mail_sent = send_email(
+                mail_sent = send_contract_email(
                     from_email=contract.created_by.email,
                     to_emails=reviewer_users,
                     email_subject=subject,
