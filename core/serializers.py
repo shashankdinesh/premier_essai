@@ -59,7 +59,7 @@ class ContractSerializer(serializers.ModelSerializer):
                 return True, "Mail already send to all reviewers"
         elif contract.status == 'internal_approved':
             if other_party_users:
-                mail_sent = send_email(
+                mail_sent = send_contract_email(
                     from_email=contract.created_by.email,
                     to_emails=other_party_users,
                     email_subject=subject,
@@ -224,9 +224,4 @@ class UserCreateSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = (
-            "first_name",
-            "last_name",
-            "email",
-            "user_type"
-        )
+        fields = "__all__"

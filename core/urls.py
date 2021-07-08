@@ -55,4 +55,9 @@ urlpatterns = [
         views.ListFileS3.as_view(),
         name="list-contract-file"
     ),
+    path(
+        "user_detail/",
+        views.UserDetailAPIView.as_view(),
+        name="user-detail"
+    ),
 ]

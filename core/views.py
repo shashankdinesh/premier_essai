@@ -136,6 +136,7 @@ class ObtainTokenLogin(APIView):
                     "status": True,
                     "AccessToken": tokens["access"],
                     "RefreshToken": tokens["refresh"],
+                    'user_data':user
                 },
                 status=status.HTTP_200_OK,
             )
@@ -418,3 +419,19 @@ class ContractPreview(generics.RetrieveAPIView):
         except Exception as e:
             return Response({"status": False, "message": e},
                             status=status.HTTP_400_BAD_REQUEST)
+
+class UserDetailAPIView(generics.RetrieveAPIView):
+    permission_classes = (IsAuthenticated,)
+    serializer_class = serializers.UserSerializer
+
+    def get(self, request, *args, **kwargs):
+        try:
+            instance = User.objects.get(id=request.user.id)
+            serializer = self.get_serializer(instance)
+            return Response(
+                {"status": True, "data": serializer.data},
+                status=status.HTTP_200_OK,
+            )
+        except Exception as e:
+            logging.exception(f"exception in fetcing instance {e}")
+            return Response({"status": False, "message": e})

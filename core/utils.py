@@ -72,15 +72,14 @@ def send_contract_email(
 
     try:
         from_email = 'support@xigolo.com'
-        email = send_mail(
+        response = send_mail(
             subject = email_subject,
             html_message=html_content,
             message=strip_tags(html_content),
             from_email = from_email,
             recipient_list = to_emails,
         )
-        response = email.send(fail_silently=False)
-        logging.info(f"Email sent from sendgrid status {response.status_code}")
+        logging.info(f"{response} Email sent ")
     except Exception as e:
         logging.info(
             "===========================Send email Error======================"
