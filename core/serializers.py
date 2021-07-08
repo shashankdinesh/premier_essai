@@ -13,6 +13,9 @@ from django.core.mail import EmailMessage
 
 class ContractSerializer(serializers.ModelSerializer):
     contract_link = serializers.SerializerMethodField()
+    created_by_email = serializers.SerializerMethodField()
+    other_part_user_mail = serializers.SerializerMethodField()
+    reviewer_mail = serializers.SerializerMethodField()
     class Meta:
         model = Contract
         fields = "__all__"
@@ -20,6 +23,15 @@ class ContractSerializer(serializers.ModelSerializer):
     def get_contract_link(self, obj):
         link = getpresignedUrl(bucket='e-contract-private',key=f'contract/{obj.contract_name}')
         return link
+
+    def get_created_by_email(self, obj):
+        return obj.created_by.email
+
+    def get_other_part_user_mail(self, obj):
+        return [user.email for user in obj.other_party_user.all()]
+
+    def get_reviewer_mail(self, obj):
+        return [user.email for user in obj.reviewer_user.all()]
 
     def mail_contract_agreement_link(self, contract,confirmation_url='sample_2.pdf',expiration_date="28-08-2021",register_url="www.apply.com"):
         msg_body, subject = contract_mail_body(
