@@ -6,19 +6,24 @@ from rest_framework import serializers
 from rest_framework.serializers import raise_errors_on_nested_writes
 
 from core.models import Contract
-from core.utils import contract_mail_body, send_email
+from core.utils import contract_mail_body, send_email, getpresignedUrl
 from econtract import errors
 from rest_framework.utils import model_meta
 
 class ContractSerializer(serializers.ModelSerializer):
+    contract_link = serializers.SerializerMethodField()
     class Meta:
         model = Contract
         fields = "__all__"
 
+    def get_contract_link(self, obj):
+        link = getpresignedUrl(bucket='e-contract-private',key=f'contract/{obj.contract_name}')
+        return link
+
     def mail_contract_agreement_link(self, contract,confirmation_url='sample_2.pdf',expiration_date="28-08-2021",register_url="www.apply.com"):
         msg_body, subject = contract_mail_body(
             senders_mail_id=contract.created_by.email,
-            file_name=contract.contract_link.split('/')[-1],
+            file_name=contract.contract_name,
             confirmation_url=confirmation_url,
             expiration_date=expiration_date,
             register_url=register_url

@@ -395,8 +395,14 @@ class ContractPreview(generics.RetrieveAPIView):
 
     def get(self, request, *args, **kwargs):
         try:
-            contract_id = request.GET.get('id')
-            email = request.GET.get('email')
+            contract_id = request.GET.get('id',None)
+            email = request.GET.get('email',None)
+            if not contract_id:
+                return Response({"status": False, "message": 'contract id not provided'},
+                                status=status.HTTP_400_BAD_REQUEST)
+            if not email:
+                return Response({"status": False, "message": 'email not provided'},
+                                status=status.HTTP_400_BAD_REQUEST)
             instance = Contract.objects.filter(id=contract_id)
             valid_approvers = [inst.id for inst in instance.other_party_user.all()]
             valid_reviewers = [inst.id for inst in instance.reviewer_user.all()]
