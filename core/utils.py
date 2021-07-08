@@ -68,15 +68,16 @@ def send_email(
         return
     if type(to_emails) == str:
         to_emails = [to_emails]
-    message = Mail(
-        from_email=(from_email, sender_name),
-        to_emails=to_emails,
-        subject=email_subject,
-        html_content=html_content,
-    )
+
     try:
-        sendgrid_client = SendGridAPIClient(settings.SENDGRID_API_KEY)
-        response = sendgrid_client.send(message)
+        from_email = 'support@xigolo.com'
+        email = EmailMessage(
+            email_subject,
+            html_content,
+            from_email,
+            to_emails,
+        )
+        response = email.send(fail_silently=False)
         logging.info(f"Email sent from sendgrid status {response.status_code}")
     except Exception as e:
         logging.info(
@@ -87,9 +88,6 @@ def send_email(
             "======================================================================"
         )
         return False
-    # logging.info(response.status_code)
-    # logging.info(response.body)
-    # logging.info(response.headers)
     return True
 
 def get_bucket():
@@ -234,17 +232,3 @@ def check_user_validity(approving_user,approving_reviewer,non_registered_user_ap
             if not contract_rejected_by in instance.non_registered_reviewer_user and not contract_rejected_by in instance.non_registered_other_party_user:
                 return {"status": False,
                         "message": f"{contract_rejected_by} is neither in non registered reviewer nor in non registered other party users"}
-
-
-#
-# def testing_mail():
-#     #from django.core.mail import BadHeaderError, send_mail
-#     from django.core.mail import EmailMessage
-#     #send_mail("subject", "message", 'guptashashank89@yahoo.com', ['shashankgupta11081991@gmail.com',"contractest_3@yahoo.com","contracttest_4@yahoo.com"])
-#     email = EmailMessage(
-#         'Hello',
-#         'Body goes here',
-#         'guptashashank89@yahoo.com',
-#         ['shashankgupta11081991@gmail.com',"contractest_3@yahoo.com","contracttest_4@yahoo.com"]
-#     )
-#     email.send(fail_silently=False)

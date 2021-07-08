@@ -9,6 +9,7 @@ from core.models import Contract
 from core.utils import contract_mail_body, send_email, getpresignedUrl
 from econtract import errors
 from rest_framework.utils import model_meta
+from django.core.mail import EmailMessage
 
 class ContractSerializer(serializers.ModelSerializer):
     contract_link = serializers.SerializerMethodField()

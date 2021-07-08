@@ -413,7 +413,7 @@ class ContractPreview(generics.RetrieveAPIView):
                 return Response({"status": True, "data": serializer.data,"requester mail": email},
                                     status=status.HTTP_200_OK)
             else:
-                return Response({"status": False, "message": 'invalid email povided'},
+                return Response({"status": False, "message": 'invalid email provided'},
                             status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({"status": False, "message": e},

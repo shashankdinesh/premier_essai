@@ -168,5 +168,14 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 SENDGRID_API_KEY = os.environ.get('SENDGRID_API_KEY','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')
 
+#Email configration; Site Url
+# ------------------------------------------------------------------------------
+EMAIL_USER_TLS = True
+EMAIL_USE_TLS = True
+EMAIL_HOST = 'email-smtp.us-east-1.amazonaws.com'
+EMAIL_HOST_USER = 'AKIA4J4DJVXPTBXADUEA'
+EMAIL_HOST_PASSWORD = 'BIpOOpjrXX4wYYUKz/ZxRKf3YTrLzFbwjJgnjVdvjSj+'
+EMAIL_PORT = 587
+SITE_URL = 'https://econtract.cazicazi.com/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
