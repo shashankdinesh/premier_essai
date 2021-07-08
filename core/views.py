@@ -93,7 +93,6 @@ class RegistrationAPIView(generics.CreateAPIView):
 
 class ObtainTokenLogin(APIView):
     def post(self, request, *args, **kwargs):
-        #import pdb;pdb.set_trace()
         logging.info(f"login request for {request.data}")
         if "username" not in request.data:
             logging.info(f"username not supplied")
@@ -136,7 +135,6 @@ class ObtainTokenLogin(APIView):
                     "status": True,
                     "AccessToken": tokens["access"],
                     "RefreshToken": tokens["refresh"],
-                    'user_data':user
                 },
                 status=status.HTTP_200_OK,
             )
