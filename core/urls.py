@@ -26,6 +26,11 @@ urlpatterns = [
         name="review-contract"
     ),
     path(
+        "contract_preview/",
+        views.ContractPreview.as_view(),
+        name="preview-contract"
+    ),
+    path(
         "update/<int:pk>/",
         views.UpdateContractDataAPIView.as_view(),
         name="update-contract"

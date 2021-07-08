@@ -370,7 +370,7 @@ class DeleteFileS3(generics.CreateAPIView):
 class ListFileS3(generics.GenericAPIView):
     permission_classes = (IsAuthenticated,)
 
-    def get(self, request, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
         prefix = request.data.get("prefix", None)
         try:
             if prefix:
@@ -390,3 +390,25 @@ class ListFileS3(generics.GenericAPIView):
             return Response({"status": False, "message": e},
                             status=status.HTTP_400_BAD_REQUEST)
 
+class ContractPreview(generics.RetrieveAPIView):
+    serializer_class = serializers.ContractSerializer
+
+    def get(self, request, *args, **kwargs):
+        try:
+            contract_id = request.GET.get('id')
+            email = request.GET.get('email')
+            instance = Contract.objects.filter(id=contract_id)
+            valid_approvers = [inst.id for inst in instance.other_party_user.all()]
+            valid_reviewers = [inst.id for inst in instance.reviewer_user.all()]
+            valid_approvers.extend(instance.non_registered_other_party_user)
+            valid_reviewers.extend(instance.non_registered_reviewer_user)
+            if email in valid_approvers or email in valid_reviewers:
+                serializer = self.get_serializer(instance)
+                return Response({"status": True, "data": serializer.data,"requester mail": email},
+                                    status=status.HTTP_200_OK)
+            else:
+                return Response({"status": False, "message": 'invalid email povided'},
+                            status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({"status": False, "message": e},
+                            status=status.HTTP_400_BAD_REQUEST)
