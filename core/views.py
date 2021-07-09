@@ -237,7 +237,7 @@ class GetContractListAPIView(generics.ListAPIView):
     permission_classes = (IsAuthenticated,)
 
     def post(self, request, *args, **kwargs):
-        # import pdb;pdb.set_trace()
+        queryset=None
         contract_status = self.request.data.get('status', None)
         if not contract_status:
             return Response(
@@ -249,7 +249,11 @@ class GetContractListAPIView(generics.ListAPIView):
                  "message": f"Status must be one of the following 'pending','internal_approved','other_party_approved','rejected' not {contract_status}"},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        queryset = User.objects.get(id=self.request.user.id).contract_reviewer.filter(status=contract_status)
+        if contract_status == 'pending':
+            queryset = User.objects.get(id=self.request.user.id).contract_reviewer.filter(status=contract_status)
+        elif contract_status == 'internal_approved':
+            queryset = User.objects.get(id=self.request.user.id).recieved_contract.filter(status=contract_status)
+
         if queryset:
             page = self.paginate_queryset(queryset)
             if page is not None:
