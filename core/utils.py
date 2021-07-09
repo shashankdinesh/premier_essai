@@ -156,14 +156,18 @@ def listbucketfile(prefix):
 
 def contract_mail_body(
         senders_mail_id="support@noborders.net",
+        destination_mail_id="support@noborders.net",
         file_name="sample_1.pdf",
         confirmation_url="sample_2.pdf",
         expiration_date="28-08-2021",
-        register_url="www.apply.com"
+        register_url="www.apply.com",
+        mail_type = 'ARRIVED'
 ):
-    msg_body = f"""Hi,<br>
+    msg_body_arrived = f"""Hi,
                 <br>
-                書類の確認依頼が届きました。<br>
+                <br>
+                書類の確認依頼が届きました。
+                <br>
                 ご確認をお願いいたします。
                 <br>
                 <br>
@@ -171,6 +175,7 @@ def contract_mail_body(
                 -----------------------------------------------------------<br>
                 <br>
                 ・送信元メールアドレス：{senders_mail_id}<br>
+                ・送付先メールアドレス：{destination_mail_id}<br>
                 ・書類名： {file_name}<br>
                 ・確認用URL： {confirmation_url}<br>
                 ・URL有効期限： {expiration_date}<br>
@@ -192,8 +197,71 @@ def contract_mail_body(
                <br>
                 -----------------------------------------------------------<br><br>
                 ＊クラウドコントラクトの推奨ブラウザはGoogle Chromeとなっております。<br>"""
-    subject = f"【社内確認】「{file_name}」の確認依頼が届いております"
-    return msg_body,subject
+    subject_arrived = f"【社内確認】「{file_name}」の確認依頼が届いております"
+    msg_body_rejected = f"""
+                            書類の内容を却下しました。<br><br><br>
+                    
+                            ・送信元メールアドレス：{senders_mail_id}
+                            ・書類名：{file_name}
+                            ・確認用URL：{confirmation_url}
+
+                            上記URLよりご確認ください。
+                            <br>
+                            <br>
+                            <br>
+                            -----------------------------------------------------------<br>
+                            <br>
+                            <br>
+                            本メールは送信専用のため、ご返信に対応する事はできません。
+                            本メールに心あたりがない場合は削除をお願いいたします。
+                            誤送付のメールを開示したり、自己利用のために用いることを固く禁じます。
+                            <br>
+                            <br>
+                            -----------------------------------------------------------<br>
+            
+                            ＊クラウドコントラクトの推奨ブラウザはGoogle Chromeとなっております。
+                """
+    subject_rejected = f"【社内確認】「{file_name}」の内容を却下しました。"
+    msg_body_approved = f"""
+    
+                            書類の内容を承認しました。
+                            <br>
+                            <br>
+                            ・送信元メールアドレス：{senders_mail_id}
+                            ・書類名：{file_name}
+                            ・確認用URL：{confirmation_url}
+
+                            上記URLよりご確認ください。
+
+                            <br>
+                            <br>
+                            <br>
+                            -----------------------------------------------------------<br>
+                            <br>
+                            <br>
+
+                            本メールは送信専用のため、ご返信に対応する事はできません。
+                            本メールに心あたりがない場合は削除をお願いいたします。
+                            誤送付のメールを開示したり、自己利用のために用いることを固く禁じます。
+                            
+                            <br>
+                            <br>
+                            <br>
+                            -----------------------------------------------------------<br>
+                            <br>
+                            <br>
+
+                            ＊クラウドコントラクトの推奨ブラウザはGoogle Chromeとなっております。
+    
+    
+    """
+    subject_approved = f"【社内確認】「{file_name}」の内容を承認しました。"
+    if mail_type == 'ARRIVED':
+        return msg_body_arrived,subject_arrived
+    if mail_type == 'APPROVED':
+        return msg_body_approved,subject_approved
+    if mail_type == 'REJECTED':
+        return msg_body_rejected,subject_rejected
 
 
 def check_user_validity(approving_user,approving_reviewer,non_registered_user_approved,non_registered_user_reviewed,contract_rejected_by,instance,valid_approvers,valid_reviewers):

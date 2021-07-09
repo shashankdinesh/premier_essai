@@ -1,3 +1,4 @@
+import logging
 import re
 
 from django.db import transaction
@@ -33,11 +34,11 @@ class ContractSerializer(serializers.ModelSerializer):
     def get_reviewer_mail(self, obj):
         return [user.email for user in obj.reviewer_user.all()]
 
-    def mail_contract_agreement_link(self, contract,confirmation_url='sample_2.pdf',expiration_date="28-08-2021",register_url="www.apply.com"):
+    def mail_contract_agreement_link(self, contract,expiration_date="28-08-2021",register_url="www.apply.com"):
         msg_body, subject = contract_mail_body(
             senders_mail_id=contract.created_by.email,
             file_name=contract.contract_name,
-            confirmation_url=confirmation_url,
+            confirmation_url=f'https://econtract.cazicazi.com/page/preview/{contract.id}',
             expiration_date=expiration_date,
             register_url=register_url
         )
@@ -130,41 +131,213 @@ class ContractSerializer(serializers.ModelSerializer):
 
         if approving_user:
             for id in approving_user:
-                contract.other_party_user.remove(User.objects.get(id=id))
+                user_app = User.objects.get(id=id)
+                contract.other_party_user.remove(user_app)
+                msg_body, subject = contract_mail_body(
+                    senders_mail_id=contract.created_by.email,
+                    file_name=contract.contract_name,
+                    confirmation_url=f'https://econtract.cazicazi.com/page/preview/{contract.id}',
+                    #expiration_date=expiration_date,
+                    #register_url=register_url,
+                    mail_type = 'APPROVED',
+                )
+
+                mail_sent = send_contract_email(
+                    from_email=contract.created_by.email,
+                    to_emails=user_app.email,
+                    email_subject=subject,
+                    html_content=msg_body,
+                    sender_name=contract.created_by.first_name + " " + contract.created_by.last_name
+                )
+                if mail_sent:
+                    logging.info(f"mail sent to {user_app.email}")
+                else:
+                    logging.info(f"mail sent failed {user_app.email}")
+
         if approving_reviewer:
             for id in approving_reviewer:
-                contract.reviewer_user.remove(User.objects.get(id=id))
+                user_app_review = User.objects.get(id=id)
+                contract.reviewer_user.remove(user_app_review)
+                msg_body, subject = contract_mail_body(
+                    senders_mail_id=contract.created_by.email,
+                    file_name=contract.contract_name,
+                    confirmation_url=f'https://econtract.cazicazi.com/page/preview/{contract.id}',
+                    # expiration_date=expiration_date,
+                    # register_url=register_url,
+                    mail_type='APPROVED',
+                )
+
+                mail_sent = send_contract_email(
+                    from_email=contract.created_by.email,
+                    to_emails=user_app_review.email,
+                    email_subject=subject,
+                    html_content=msg_body,
+                    sender_name=contract.created_by.first_name + " " + contract.created_by.last_name
+                )
+                if mail_sent:
+                    logging.info(f"mail sent to {user_app_review.email}")
+                else:
+                    logging.info(f"mail sent failed {user_app_review.email}")
+
+
         if non_registered_user_approved:
             for email in non_registered_user_approved:
                 contract.non_registered_other_party_user.remove(email)
+                msg_body, subject = contract_mail_body(
+                    senders_mail_id=contract.created_by.email,
+                    file_name=contract.contract_name,
+                    confirmation_url=f'https://econtract.cazicazi.com/page/preview/{contract.id}',
+                    # expiration_date=expiration_date,
+                    # register_url=register_url,
+                    mail_type='APPROVED',
+                )
+
+                mail_sent = send_contract_email(
+                    from_email=contract.created_by.email,
+                    to_emails=email,
+                    email_subject=subject,
+                    html_content=msg_body,
+                    sender_name=contract.created_by.first_name + " " + contract.created_by.last_name
+                )
+                if mail_sent:
+                    logging.info(f"mail sent to {email}")
+                else:
+                    logging.info(f"mail sent failed {email}")
+
             contract.save()
+
         if non_registered_user_reviewed:
             for email in non_registered_user_reviewed:
                 contract.non_registered_reviewer_user.remove(email)
+                msg_body, subject = contract_mail_body(
+                    senders_mail_id=contract.created_by.email,
+                    file_name=contract.contract_name,
+                    confirmation_url=f'https://econtract.cazicazi.com/page/preview/{contract.id}',
+                    # expiration_date=expiration_date,
+                    # register_url=register_url,
+                    mail_type='APPROVED',
+                )
+
+                mail_sent = send_contract_email(
+                    from_email=contract.created_by.email,
+                    to_emails=email,
+                    email_subject=subject,
+                    html_content=msg_body,
+                    sender_name=contract.created_by.first_name + " " + contract.created_by.last_name
+                )
+                if mail_sent:
+                    logging.info(f"mail sent to {email}")
+                else:
+                    logging.info(f"mail sent failed {email}")
+
             contract.save()
+
         if contract_rejected_by:
             for email in contract_rejected_by:
                 try:
                     if email in contract.non_registered_reviewer_user:
                         contract.non_registered_reviewer_user.remove(email)
                         contract.status = 'reviewer_rejected'
+                        msg_body, subject = contract_mail_body(
+                            senders_mail_id=contract.created_by.email,
+                            file_name=contract.contract_name,
+                            confirmation_url=f'https://econtract.cazicazi.com/page/preview/{contract.id}',
+                            # expiration_date=expiration_date,
+                            # register_url=register_url,
+                            mail_type='REJECTED',
+                        )
+
+                        mail_sent = send_contract_email(
+                            from_email=contract.created_by.email,
+                            to_emails=email,
+                            email_subject=subject,
+                            html_content=msg_body,
+                            sender_name=contract.created_by.first_name + " " + contract.created_by.last_name
+                        )
+                        if mail_sent:
+                            logging.info(f"mail sent to {email}")
+                        else:
+                            logging.info(f"mail sent failed {email}")
                         contract.save()
+
                     elif email in contract.non_registered_other_party_user:
                         contract.non_registered_other_party_user.remove(email)
                         contract.status = 'other_party_rejected'
+                        msg_body, subject = contract_mail_body(
+                            senders_mail_id=contract.created_by.email,
+                            file_name=contract.contract_name,
+                            confirmation_url=f'https://econtract.cazicazi.com/page/preview/{contract.id}',
+                            # expiration_date=expiration_date,
+                            # register_url=register_url,
+                            mail_type='REJECTED',
+                        )
+
+                        mail_sent = send_contract_email(
+                            from_email=contract.created_by.email,
+                            to_emails=email,
+                            email_subject=subject,
+                            html_content=msg_body,
+                            sender_name=contract.created_by.first_name + " " + contract.created_by.last_name
+                        )
+                        if mail_sent:
+                            logging.info(f"mail sent to {email}")
+                        else:
+                            logging.info(f"mail sent failed {email}")
                         contract.save()
                 except:
                     pass
         if user_rejected_contract:
             for user_id in user_rejected_contract:
+                usr_rej = User.objects.get(id=user_id)
                 if user_id in valid_approvers:
-                    contract.other_party_user.remove(User.objects.get(id=user_id))
+                    contract.other_party_user.remove(usr_rej)
                     contract.status = 'other_party_rejected'
                     contract.save()
+                    msg_body, subject = contract_mail_body(
+                        senders_mail_id=contract.created_by.email,
+                        file_name=contract.contract_name,
+                        confirmation_url=f'https://econtract.cazicazi.com/page/preview/{contract.id}',
+                        # expiration_date=expiration_date,
+                        # register_url=register_url,
+                        mail_type='REJECTED',
+                    )
+
+                    mail_sent = send_contract_email(
+                        from_email=contract.created_by.email,
+                        to_emails=usr_rej.email,
+                        email_subject=subject,
+                        html_content=msg_body,
+                        sender_name=contract.created_by.first_name + " " + contract.created_by.last_name
+                    )
+                    if mail_sent:
+                        logging.info(f"mail sent to {usr_rej.email}")
+                    else:
+                        logging.info(f"mail sent failed {usr_rej.email}")
                 elif user_id in valid_reviewers:
-                    contract.reviewer_user.remove(User.objects.get(id=user_id))
+                    usr_rej_review = User.objects.get(id=user_id)
+                    contract.reviewer_user.remove(usr_rej_review)
                     contract.status = 'reviewer_rejected'
                     contract.save()
+                    msg_body, subject = contract_mail_body(
+                        senders_mail_id=contract.created_by.email,
+                        file_name=contract.contract_name,
+                        confirmation_url=f'https://econtract.cazicazi.com/page/preview/{contract.id}',
+                        # expiration_date=expiration_date,
+                        # register_url=register_url,
+                        mail_type='REJECTED',
+                    )
+
+                    mail_sent = send_contract_email(
+                        from_email=contract.created_by.email,
+                        to_emails=usr_rej_review.email,
+                        email_subject=subject,
+                        html_content=msg_body,
+                        sender_name=contract.created_by.first_name + " " + contract.created_by.last_name
+                    )
+                    if mail_sent:
+                        logging.info(f"mail sent to {usr_rej_review.email}")
+                    else:
+                        logging.info(f"mail sent failed {usr_rej_review.email}")
 
 
 class UserCreateSerializer(serializers.ModelSerializer):

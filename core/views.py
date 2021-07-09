@@ -269,10 +269,49 @@ class UpdateContractDataAPIView(generics.UpdateAPIView):
     serializer_class = serializers.ContractSerializer
 
     def get(self, request, *args, **kwargs):
+        #import pdb;pdb.set_trace()
         try:
-            instance = Contract.objects.get(id=kwargs["pk"])
-            serializer = self.get_serializer(instance)
-            return Response({"status": True, "data": serializer.data}, status=status.HTTP_200_OK)
+            email = request.GET.get('email', None)
+            if email:
+                instance = Contract.objects.filter(id=kwargs["pk"])
+                if instance:
+                    valid_approvers = [inst.email for inst in instance[0].other_party_user.all() ]
+                    user_approved_con = [inst.email for inst in instance[0].user_approved.all()]
+
+                    user_rejected_con = [inst.email for inst in instance[0].user_rejected.all()]
+
+                    valid_reviewers = [inst.email for inst in instance[0].reviewer_user.all()]
+                    user_reviewed_con = [inst.email for inst in instance[0].user_reviewed.all()]
+
+                    valid_approvers.extend(instance[0].non_registered_other_party_user)
+                    user_approved_con.extend(instance[0].non_registered_user_approved)
+
+                    valid_reviewers.extend(instance[0].non_registered_reviewer_user)
+                    user_reviewed_con.extend(instance[0].non_registered_user_reviewed)
+
+                    user_rejected_con.extend(instance[0].rejected_by)
+
+                    serializer = self.get_serializer(instance[0])
+
+                    if (email in valid_approvers and instance[0].status=='internal_approved') or (email in valid_reviewers and instance[0].status=='pending'):
+                        return Response({"status": True, "data": serializer.data, "type": 'ARRIVED'},
+                                        status=status.HTTP_200_OK)
+                    elif (email in user_approved_con and instance[0].status=='other_party_approved') or (email in user_reviewed_con and instance[0].status=='internal_approved'):
+                        return Response({"status": False, "data": serializer.data, "type": 'APPROVED'},
+                                        status=status.HTTP_200_OK)
+                    elif (email in user_rejected_con and instance[0].status in ['reviewer_rejected','other_party_rejected']):
+                        return Response({"status": False, "data": serializer.data, "type": 'REJECTED'},
+                                        status=status.HTTP_200_OK)
+                    else:
+                        return Response({"status": False, "message": 'invalid email provided'},
+                                        status=status.HTTP_400_BAD_REQUEST)
+                else:
+                    return Response({"status": False, "message": "contract not found"},
+                                    status=status.HTTP_204_NO_CONTENT)
+            else:
+                instance = Contract.objects.get(id=kwargs["pk"])
+                serializer = self.get_serializer(instance)
+                return Response({"status": True, "data": serializer.data}, status=status.HTTP_200_OK)
         except:
             return Response({"status": False, "message": "contract not found"}, status=status.HTTP_204_NO_CONTENT)
 
