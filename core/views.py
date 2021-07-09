@@ -297,14 +297,14 @@ class UpdateContractDataAPIView(generics.UpdateAPIView):
                         return Response({"status": True, "data": serializer.data, "type": 'ARRIVED'},
                                         status=status.HTTP_200_OK)
                     elif (email in user_approved_con and instance[0].status=='other_party_approved') or (email in user_reviewed_con and instance[0].status=='internal_approved'):
-                        return Response({"status": False, "data": serializer.data, "type": 'APPROVED'},
+                        return Response({"status": True, "data": serializer.data, "type": 'APPROVED'},
                                         status=status.HTTP_200_OK)
                     elif (email in user_rejected_con and instance[0].status in ['reviewer_rejected','other_party_rejected']):
-                        return Response({"status": False, "data": serializer.data, "type": 'REJECTED'},
+                        return Response({"status": True, "data": serializer.data, "type": 'REJECTED'},
                                         status=status.HTTP_200_OK)
 
                     elif email in [instance[0].created_by.email]:
-                        return Response({"status": False, "data": serializer.data, "type": 'OWNER'},
+                        return Response({"status": True, "data": serializer.data, "type": 'OWNER'},
                                         status=status.HTTP_200_OK)
                     else:
                         return Response({"status": False, "message": 'invalid email provided'},
