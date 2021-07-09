@@ -139,7 +139,7 @@ class Contract(Base):
 
     @staticmethod
     def update_internal_approval_status(contract):
-        print(f"updating status for the {contract.contract_link}")
+        print(f"updating status for the {contract.contract_name}")
         try:
             non_registered_reviewer_users = contract.non_registered_reviewer_user
             reviewer_users = contract.reviewer_user.all()
@@ -148,12 +148,12 @@ class Contract(Base):
                 contract.status = "internal_approved"
                 contract.save()
         except Exception as e:
-            print(f"exception in updating status {contract.contract_link} : {e}")
+            print(f"exception in updating status {contract.contract_name} : {e}")
             return False
 
     @staticmethod
     def update_other_party_approval_status(contract):
-        print(f"updating status for the {contract.contract_link}")
+        print(f"updating status for the {contract.contract_name}")
         try:
 
             other_party_users = contract.other_party_user.all()
@@ -162,5 +162,5 @@ class Contract(Base):
                 contract.status = "other_party_approved"
                 contract.save()
         except Exception as e:
-            print(f"exception in updating status {contract.contract_link} : {e}")
+            print(f"exception in updating status {contract.contract_name} : {e}")
             return False

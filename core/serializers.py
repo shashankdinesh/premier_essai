@@ -91,7 +91,6 @@ class ContractSerializer(serializers.ModelSerializer):
             return True, "Mail already send to all other party users"
 
     def update(self, instance, validated_data):
-        #import pdb;pdb.set_trace()
         raise_errors_on_nested_writes('update', self, validated_data)
         info = model_meta.get_field_info(instance)
 
@@ -183,6 +182,7 @@ class ContractSerializer(serializers.ModelSerializer):
         if non_registered_user_approved:
             for email in non_registered_user_approved:
                 contract.non_registered_other_party_user.remove(email)
+                contract.save()
                 msg_body, subject = contract_mail_body(
                     senders_mail_id=contract.created_by.email,
                     file_name=contract.contract_name,
@@ -204,11 +204,13 @@ class ContractSerializer(serializers.ModelSerializer):
                 else:
                     logging.info(f"mail sent failed {email}")
 
-            contract.save()
+
 
         if non_registered_user_reviewed:
+            #import pdb;pdb.set_trace()
             for email in non_registered_user_reviewed:
                 contract.non_registered_reviewer_user.remove(email)
+                contract.save()
                 msg_body, subject = contract_mail_body(
                     senders_mail_id=contract.created_by.email,
                     file_name=contract.contract_name,
@@ -230,7 +232,7 @@ class ContractSerializer(serializers.ModelSerializer):
                 else:
                     logging.info(f"mail sent failed {email}")
 
-            contract.save()
+
 
         if contract_rejected_by:
             for email in contract_rejected_by:
@@ -238,6 +240,7 @@ class ContractSerializer(serializers.ModelSerializer):
                     if email in contract.non_registered_reviewer_user:
                         contract.non_registered_reviewer_user.remove(email)
                         contract.status = 'reviewer_rejected'
+                        contract.save()
                         msg_body, subject = contract_mail_body(
                             senders_mail_id=contract.created_by.email,
                             file_name=contract.contract_name,
@@ -258,11 +261,12 @@ class ContractSerializer(serializers.ModelSerializer):
                             logging.info(f"mail sent to {email}")
                         else:
                             logging.info(f"mail sent failed {email}")
-                        contract.save()
+
 
                     elif email in contract.non_registered_other_party_user:
                         contract.non_registered_other_party_user.remove(email)
                         contract.status = 'other_party_rejected'
+                        contract.save()
                         msg_body, subject = contract_mail_body(
                             senders_mail_id=contract.created_by.email,
                             file_name=contract.contract_name,
@@ -283,7 +287,7 @@ class ContractSerializer(serializers.ModelSerializer):
                             logging.info(f"mail sent to {email}")
                         else:
                             logging.info(f"mail sent failed {email}")
-                        contract.save()
+
                 except:
                     pass
         if user_rejected_contract:

@@ -198,6 +198,7 @@ def contract_mail_body(
                 -----------------------------------------------------------<br><br>
                 ＊クラウドコントラクトの推奨ブラウザはGoogle Chromeとなっております。<br>"""
     subject_arrived = f"【社内確認】「{file_name}」の確認依頼が届いております"
+
     msg_body_rejected = f"""
                             書類の内容を却下しました。<br><br><br>
                     
@@ -222,6 +223,7 @@ def contract_mail_body(
                             ＊クラウドコントラクトの推奨ブラウザはGoogle Chromeとなっております。
                 """
     subject_rejected = f"【社内確認】「{file_name}」の内容を却下しました。"
+
     msg_body_approved = f"""
     
                             書類の内容を承認しました。
@@ -229,7 +231,7 @@ def contract_mail_body(
                             <br>
                             ・送信元メールアドレス：{senders_mail_id}
                             ・書類名：{file_name}
-                            ・確認用URL：{confirmation_url}
+                            ・確認用URL：{confirmation_url}>
 
                             上記URLよりご確認ください。
 

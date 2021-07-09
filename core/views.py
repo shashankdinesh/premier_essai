@@ -321,6 +321,8 @@ class UpdateContractDataAPIView(generics.UpdateAPIView):
 
 
     def update(self, request, *args, **kwargs):
+        #import pdb;pdb.set_trace()
+        user_approved_ids,user_approved_emails, user_reviewed_ids,user_reviewed_mails, user_rejected_ids,user_rejected_email = [], [], [], [], [], []
         updated_contract = request.data.get('upload',None)
         update_contract_date = request.data.get('contract_update_date',None)
 
@@ -337,6 +339,56 @@ class UpdateContractDataAPIView(generics.UpdateAPIView):
             return Response(
                 {"status": False, "data": []}, status=status.HTTP_204_NO_CONTENT
             )
+        valid_approvers_mail = [inst.email for inst in instance.other_party_user.all()]
+        valid_non_registered_approvers = instance.non_registered_other_party_user
+        valid_reviewers_email = [inst.email for inst in instance.reviewer_user.all()]
+        requester_email = request.data.get('emails',None)
+        requesting_status = request.data.get('status',None)
+
+        if requester_email:
+            for email in requester_email:
+                if User.objects.filter(email=email):
+                    if email in valid_approvers_mail:
+                        if requesting_status == 'ACCEPTED':
+                            user_approved_ids.append(User.objects.filter(email=email)[0].id)
+                        elif requesting_status == 'REJECTED':
+                            user_rejected_ids.append(User.objects.filter(email=email)[0].id)
+                    elif email in valid_reviewers_email:
+                        if requesting_status == 'ACCEPTED':
+                            user_reviewed_ids.append(User.objects.filter(email=email)[0].id)
+                        elif requesting_status == 'REJECTED':
+                            user_rejected_ids.append(User.objects.filter(email=email)[0].id)
+                    else:
+                        pass
+                else:
+                    if email in valid_non_registered_approvers:
+                        if requesting_status == 'ACCEPTED':
+                            user_approved_emails.append(email)
+                        elif requesting_status == 'REJECTED':
+                            user_rejected_email.append(email)
+
+                    elif email in valid_reviewers_email:
+                        if requesting_status == 'ACCEPTED':
+                            user_reviewed_mails.append(email)
+                        elif requesting_status == 'REJECTED':
+                            user_rejected_email.append(email)
+                    else:
+                        pass
+            if user_approved_ids:
+                request.data['user_approved'] = user_approved_ids
+            if user_reviewed_ids:
+                request.data['user_reviewed'] = user_reviewed_ids
+            if user_approved_emails:
+                request.data['non_registered_user_approved'] = user_approved_emails
+            if user_reviewed_mails:
+                request.data['non_registered_user_reviewed'] = user_reviewed_mails
+            if user_rejected_ids:
+                request.data['user_rejected'] = user_rejected_ids
+            if user_rejected_email:
+               request.data['rejected_by'] = user_rejected_email
+
+        del request.data['emails']
+        del request.data['status']
 
         serializer = self.serializer_class(
             instance, data=request.data, partial=partial,
