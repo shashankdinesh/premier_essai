@@ -97,7 +97,7 @@ class ObtainTokenLogin(APIView):
             )
 
         logging.info(f"looking for user")
-        user = User.objects.filter(username=request.data["username"]).first()
+        user = User.objects.filter(email=request.data["username"]).first()
         if not user:
             logging.info(f"{user} not found")
             return Response(
