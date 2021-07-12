@@ -160,7 +160,7 @@ def contract_mail_body(
         file_name="sample_1.pdf",
         confirmation_url="sample_2.pdf",
         expiration_date="28-08-2021",
-        register_url="www.apply.com",
+        register_url="https://econtract.cazicazi.com/register",
         mail_type = 'ARRIVED'
 ):
     msg_body_arrived = f"""Hi,

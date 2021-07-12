@@ -6,6 +6,7 @@ import base64
 from io import BytesIO, StringIO
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.shortcuts import render
+from datetime import timedelta
 from datetime import datetime
 import logging
 import random
@@ -201,6 +202,9 @@ class UploadContract(generics.CreateAPIView):
             return Response({"status": False, "message": "Data Not Found"}, status=status.HTTP_204_NO_CONTENT)
 
     def post(self, request, *args, **kwargs):
+        expiry_date = request.data.get('contract_expiry_date',None)
+        if not expiry_date:
+            request.data['contract_expiry_date'] = (datetime.today().date()+timedelta(days=30)).strftime("%Y-%m-%d")
         other_party_ids,reviewer_ids=[],[]
         request.data['created_by']=request.user.id
         non_registered_other_users = copy.copy(request.data['non_registered_other_party_user'])
@@ -504,3 +508,4 @@ class UserDetailAPIView(generics.RetrieveAPIView):
         except Exception as e:
             logging.exception(f"exception in fetcing instance {e}")
             return Response({"status": False, "message": e})
+

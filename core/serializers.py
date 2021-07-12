@@ -45,7 +45,7 @@ class ContractSerializer(serializers.ModelSerializer):
             destination_mail_id=d_mail_ids,
             file_name=contract.contract_name,
             confirmation_url=f'https://econtract.cazicazi.com/page/preview/{contract.id}',
-            expiration_date=expiration_date,
+            expiration_date=contract.contract_expiry_date,
             register_url=register_url
         )
         user_already_sent_mail = contract.mail_sent
@@ -142,7 +142,7 @@ class ContractSerializer(serializers.ModelSerializer):
                     senders_mail_id=contract.created_by.email,
                     file_name=contract.contract_name,
                     confirmation_url=f'https://econtract.cazicazi.com/page/preview/{contract.id}',
-                    #expiration_date=expiration_date,
+                    expiration_date=contract.contract_expiry_date,
                     #register_url=register_url,
                     mail_type = 'APPROVED',
                 )
