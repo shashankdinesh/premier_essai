@@ -35,9 +35,14 @@ class ContractSerializer(serializers.ModelSerializer):
         return [user.email for user in obj.reviewer_user.all()]
 
     def mail_contract_agreement_link(self, contract,expiration_date="28-08-2021",register_url="www.apply.com"):
+        d_mail_ids_opu = ", ".join([email for email in contract.non_registered_other_party_user])
+        if d_mail_ids_opu:
+            d_mail_ids= d_mail_ids_opu +', '+ ", ".join([user.email for user in contract.other_party_user.all()])
+        else:
+            d_mail_ids = ", ".join([user.email for user in contract.other_party_user.all()])
         msg_body, subject = contract_mail_body(
             senders_mail_id=contract.created_by.email,
-            destination_mail_id=", ".join([user.email for user in contract.other_party_user.all()]),
+            destination_mail_id=d_mail_ids,
             file_name=contract.contract_name,
             confirmation_url=f'https://econtract.cazicazi.com/page/preview/{contract.id}',
             expiration_date=expiration_date,
@@ -135,7 +140,6 @@ class ContractSerializer(serializers.ModelSerializer):
                 contract.other_party_user.remove(user_app)
                 msg_body, subject = contract_mail_body(
                     senders_mail_id=contract.created_by.email,
-                    destination_mail_id=", ".join([user.email for user in contract.other_party_user.all()]),
                     file_name=contract.contract_name,
                     confirmation_url=f'https://econtract.cazicazi.com/page/preview/{contract.id}',
                     #expiration_date=expiration_date,
@@ -161,7 +165,6 @@ class ContractSerializer(serializers.ModelSerializer):
                 contract.reviewer_user.remove(user_app_review)
                 msg_body, subject = contract_mail_body(
                     senders_mail_id=contract.created_by.email,
-                    destination_mail_id=", ".join([user.email for user in contract.other_party_user.all()]),
                     file_name=contract.contract_name,
                     confirmation_url=f'https://econtract.cazicazi.com/page/preview/{contract.id}',
                     # expiration_date=expiration_date,
@@ -188,7 +191,6 @@ class ContractSerializer(serializers.ModelSerializer):
                 contract.save()
                 msg_body, subject = contract_mail_body(
                     senders_mail_id=contract.created_by.email,
-                    destination_mail_id=", ".join([user.email for user in contract.other_party_user.all()]),
                     file_name=contract.contract_name,
                     confirmation_url=f'https://econtract.cazicazi.com/page/preview/{contract.id}',
                     # expiration_date=expiration_date,
@@ -217,7 +219,6 @@ class ContractSerializer(serializers.ModelSerializer):
                 contract.save()
                 msg_body, subject = contract_mail_body(
                     senders_mail_id=contract.created_by.email,
-                    destination_mail_id=", ".join([user.email for user in contract.other_party_user.all()]),
                     file_name=contract.contract_name,
                     confirmation_url=f'https://econtract.cazicazi.com/page/preview/{contract.id}',
                     # expiration_date=expiration_date,
@@ -248,7 +249,6 @@ class ContractSerializer(serializers.ModelSerializer):
                         contract.save()
                         msg_body, subject = contract_mail_body(
                             senders_mail_id=contract.created_by.email,
-                            destination_mail_id=", ".join([user.email for user in contract.other_party_user.all()]),
                             file_name=contract.contract_name,
                             confirmation_url=f'https://econtract.cazicazi.com/page/preview/{contract.id}',
                             # expiration_date=expiration_date,
@@ -275,7 +275,6 @@ class ContractSerializer(serializers.ModelSerializer):
                         contract.save()
                         msg_body, subject = contract_mail_body(
                             senders_mail_id=contract.created_by.email,
-                            destination_mail_id=", ".join([user.email for user in contract.other_party_user.all()]),
                             file_name=contract.contract_name,
                             confirmation_url=f'https://econtract.cazicazi.com/page/preview/{contract.id}',
                             # expiration_date=expiration_date,
@@ -306,7 +305,6 @@ class ContractSerializer(serializers.ModelSerializer):
                     contract.save()
                     msg_body, subject = contract_mail_body(
                         senders_mail_id=contract.created_by.email,
-                        destination_mail_id=", ".join([user.email for user in contract.other_party_user.all()]),
                         file_name=contract.contract_name,
                         confirmation_url=f'https://econtract.cazicazi.com/page/preview/{contract.id}',
                         # expiration_date=expiration_date,
@@ -332,7 +330,6 @@ class ContractSerializer(serializers.ModelSerializer):
                     contract.save()
                     msg_body, subject = contract_mail_body(
                         senders_mail_id=contract.created_by.email,
-                        destination_mail_id=", ".join([user.email for user in contract.other_party_user.all()]),
                         file_name=contract.contract_name,
                         confirmation_url=f'https://econtract.cazicazi.com/page/preview/{contract.id}',
                         # expiration_date=expiration_date,
