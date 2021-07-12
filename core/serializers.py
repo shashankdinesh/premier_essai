@@ -34,7 +34,7 @@ class ContractSerializer(serializers.ModelSerializer):
     def get_reviewer_mail(self, obj):
         return [user.email for user in obj.reviewer_user.all()]
 
-    def mail_contract_agreement_link(self, contract,expiration_date="28-08-2021",register_url="www.apply.com"):
+    def mail_contract_agreement_link(self, contract,expiration_date="28-08-2021"):
         d_mail_ids_opu = ", ".join([email for email in contract.non_registered_other_party_user])
         if d_mail_ids_opu:
             d_mail_ids= d_mail_ids_opu +', '+ ", ".join([user.email for user in contract.other_party_user.all()])
@@ -45,8 +45,7 @@ class ContractSerializer(serializers.ModelSerializer):
             destination_mail_id=d_mail_ids,
             file_name=contract.contract_name,
             confirmation_url=f'https://econtract.cazicazi.com/page/preview/{contract.id}',
-            expiration_date=contract.contract_expiry_date,
-            register_url=register_url
+            expiration_date=contract.contract_expiry_date
         )
         user_already_sent_mail = contract.mail_sent
         non_registered_other_party_users = [mail_id for mail_id in contract.non_registered_other_party_user if
@@ -419,4 +418,4 @@ class UserCreateSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = "__all__"
+        exclude = ('password','user_permissions','groups')

@@ -1,23 +1,11 @@
-from django.contrib import messages
-from django.views.generic import TemplateView, ListView
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.shortcuts import redirect
-import base64
-from io import BytesIO, StringIO
-from django.core.files.uploadedfile import InMemoryUploadedFile
-from django.shortcuts import render
 from datetime import timedelta
 from datetime import datetime
 import logging
 import random
 import copy
 from django.contrib.auth import authenticate
-
-# Create your views here.
-from django.core import management
 from django_common.auth_backends import User
 from rest_framework import generics, status
-from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -29,7 +17,7 @@ from rest_framework.pagination import PageNumberPagination
 from django.contrib.auth import login
 from django.contrib.auth import logout as django_logout
 from core.models import User as core_user, Contract
-from django.core.files import File
+
 APPLICATION_NAME = "core"
 
 class CustomPageNumberPagination(PageNumberPagination):

@@ -1,24 +1,10 @@
 from rest_framework_simplejwt.tokens import RefreshToken
 from core.models import User
 import boto3, os
-from django.conf import settings
-import logging
 from django.core.mail import send_mail, EmailMessage
 import json, requests, logging
-import requests
-import base64
 import os
 from django.utils.html import strip_tags
-from sendgrid.sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import (
-    Mail,
-    Attachment,
-    FileContent,
-    FileName,
-    FileType,
-    Disposition,
-    ContentId,
-)
 
 def getpresignedUrl(bucket='e-contract-private',key='contract/sample.pdf'):
     s3_client = boto3.client(
