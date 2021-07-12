@@ -177,7 +177,7 @@ def contract_mail_body(
                 ・送信元メールアドレス：{senders_mail_id}<br>
                 ・送付先メールアドレス：{destination_mail_id}<br>
                 ・書類名： {file_name}<br>
-                ・確認用URL： {confirmation_url}<br>
+                ・確認用URL： <a href={confirmation_url} target="_blank" rel="noreferrer">{confirmation_url}</a><br>
                 ・URL有効期限： {expiration_date}<br>
                 <br>
                 <br>
@@ -192,7 +192,7 @@ def contract_mail_body(
                 <br>
                 <br>
                 会員登録はこちら<br>
-                {register_url}<br>
+                <a href={register_url} target="_blank" rel="noreferrer">{register_url}</a><br>
                <br>
                <br>
                 -----------------------------------------------------------<br><br>
@@ -200,12 +200,19 @@ def contract_mail_body(
     subject_arrived = f"【社内確認】「{file_name}」の確認依頼が届いております"
 
     msg_body_rejected = f"""
-                            書類の内容を却下しました。<br><br><br>
-                    
+                            <br><br>
+                            書類の内容を却下しました。
+                            <br>
+                             <br>
+                              <br>
                             ・送信元メールアドレス：{senders_mail_id}
+                            <br>
                             ・書類名：{file_name}
-                            ・確認用URL：{confirmation_url}
-
+                            <br>
+                            ・確認用URL：<a href={confirmation_url} target="_blank" rel="noreferrer">{confirmation_url}</a>
+                            <br>
+                             <br>
+                              <br>
                             上記URLよりご確認ください。
                             <br>
                             <br>
@@ -214,8 +221,11 @@ def contract_mail_body(
                             <br>
                             <br>
                             本メールは送信専用のため、ご返信に対応する事はできません。
+                             <br>
                             本メールに心あたりがない場合は削除をお願いいたします。
+                             <br>
                             誤送付のメールを開示したり、自己利用のために用いることを固く禁じます。
+                            
                             <br>
                             <br>
                             -----------------------------------------------------------<br>
@@ -225,14 +235,19 @@ def contract_mail_body(
     subject_rejected = f"【社内確認】「{file_name}」の内容を却下しました。"
 
     msg_body_approved = f"""
-    
+                            <br>
+                            <br>
                             書類の内容を承認しました。
                             <br>
                             <br>
                             ・送信元メールアドレス：{senders_mail_id}
+                            <br>
                             ・書類名：{file_name}
-                            ・確認用URL：{confirmation_url}>
-
+                            <br>
+                            ・確認用URL：<a href={confirmation_url} target="_blank" rel="noreferrer">{confirmation_url}</a>
+                            <br>
+                            <br>
+                            <br>
                             上記URLよりご確認ください。
 
                             <br>
@@ -243,7 +258,9 @@ def contract_mail_body(
                             <br>
 
                             本メールは送信専用のため、ご返信に対応する事はできません。
+                            <br>
                             本メールに心あたりがない場合は削除をお願いいたします。
+                            <br>
                             誤送付のメールを開示したり、自己利用のために用いることを固く禁じます。
                             
                             <br>
@@ -303,3 +320,14 @@ def check_user_validity(approving_user,approving_reviewer,non_registered_user_ap
             if not contract_rejected_by in instance.non_registered_reviewer_user and not contract_rejected_by in instance.non_registered_other_party_user:
                 return {"status": False,
                         "message": f"{contract_rejected_by} is neither in non registered reviewer nor in non registered other party users"}
+
+def mail_check():
+    m, s = contract_mail_body(senders_mail_id="shashank@noborders.net", file_name="shashank.pdf",
+                              confirmation_url=f'https://econtract.cazicazi.com/page/preview/12', mail_type='APPROVED')
+    mail_sent = send_contract_email(
+        from_email="shashank@noborders.net",
+        to_emails=["contracttest_1@yahoo.com"],
+        email_subject=s,
+        html_content=m,
+        sender_name="shashank"
+    )
