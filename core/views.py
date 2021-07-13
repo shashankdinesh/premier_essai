@@ -304,7 +304,7 @@ class UpdateContractDataAPIView(generics.UpdateAPIView):
                                         status=status.HTTP_200_OK)
                     else:
                         return Response({"status": False, "message": 'invalid email provided'},
-                                        status=status.HTTP_400_BAD_REQUEST)
+                                        status=status.HTTP_200_OK)
                 else:
                     return Response({"status": False, "message": "contract not found"},
                                     status=status.HTTP_204_NO_CONTENT)
