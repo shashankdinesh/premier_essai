@@ -55,4 +55,9 @@ urlpatterns = [
         views.UserDetailAPIView.as_view(),
         name="user-detail"
     ),
+    path(
+        "update_password/",
+        views.ForgotPasswordAPIView.as_view(),
+        name="update-password"
+    ),
 ]

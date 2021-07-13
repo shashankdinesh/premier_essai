@@ -351,7 +351,7 @@ class ContractSerializer(serializers.ModelSerializer):
 
 class UserCreateSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
-    confirm_password = serializers.CharField()
+    confirm_password = serializers.CharField(write_only=True)
     email = serializers.EmailField(required=False)
 
     def update_contracts_details(self,registered_user):
@@ -396,6 +396,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
 
     @transaction.atomic()
     def create(self, validated_data):
+        #import pdb;pdb.set_trace()
         user = User(**validated_data)
         user.set_password(validated_data["password"])
         user.is_active = True
@@ -404,9 +405,15 @@ class UserCreateSerializer(serializers.ModelSerializer):
 
         return user
 
+    def update(self, instance, validated_data):
+        instance.set_password(validated_data.get('password'))
+        instance.save()
+        return instance
+
     class Meta:
         model = User
         fields = (
+            "id",
             "password",
             "username",
             "confirm_password",

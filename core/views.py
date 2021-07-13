@@ -483,7 +483,7 @@ class ListFileS3(generics.GenericAPIView):
 
 class UserDetailAPIView(generics.RetrieveAPIView):
     permission_classes = (IsAuthenticated,)
-    serializer_class = serializers.UserSerializer
+    serializer_class = serializers.UserCreateSerializer
 
     def get(self, request, *args, **kwargs):
         try:
@@ -497,3 +497,73 @@ class UserDetailAPIView(generics.RetrieveAPIView):
             logging.exception(f"exception in fetcing instance {e}")
             return Response({"status": False, "message": e})
 
+    def post(self,request, *args, **kwargs):
+        try:
+            pass
+        except Exception as e:
+            return Response({"status": False, "message": e})
+
+
+
+class ForgotPasswordAPIView(generics.RetrieveUpdateAPIView):
+    serializer_class = serializers.UserCreateSerializer
+
+    def get(self, request, *args, **kwargs):
+        try:
+            #import pdb;pdb.set_trace()
+            email = self.request.GET.get('email', None)
+            if email:
+                instance = User.objects.get(email=email)
+                serializer = self.get_serializer(instance)
+                return Response(
+                    {"status": True, "data": serializer.data},
+                    status=status.HTTP_200_OK,
+                )
+            else:
+                logging.exception(f"email Not provided")
+                return Response({"status": False, "message": "email Not provided"})
+        except Exception as e:
+            logging.exception(f"exception in fetcing instance {e}")
+            return Response({"status": False, "message": e})
+
+    def patch(self, request, *args, **kwargs):
+        try:
+            #import pdb;pdb.set_trace()
+            instance = User.objects.get(id=request.data['id'])
+            serializer = self.get_serializer(instance, data=request.data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            credentials = {
+                "username": request.data["email"],
+                "password": request.data["password"],
+            }
+            user = authenticate(**credentials)
+            if user:
+                logging.info(f"{user} generating access tokens")
+                tokens = utils.get_tokens_for_user(user)
+                return Response(
+                    {
+                        "message": "You have successfully Logged In",
+                        "status": True,
+                        "AccessToken": tokens["access"],
+                        "RefreshToken": tokens["refresh"],
+                    },
+                    status=status.HTTP_200_OK,
+                )
+            else:
+                logging.info(f"wrong credentials supplied")
+                return Response(
+                    {
+                        "message": "email or password does not match, please enter correct details",
+                        "status": False,
+                    },
+                    status=status.HTTP_200_OK,
+                )
+        except Exception as e:
+            return Response(
+                {
+                    "message": f"Password updation failed due to exception {e}",
+                    "status": False
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
