@@ -339,6 +339,7 @@ class UpdateContractDataAPIView(generics.UpdateAPIView):
         valid_approvers_mail = [inst.email for inst in instance.other_party_user.all()]
         valid_non_registered_approvers = instance.non_registered_other_party_user
         valid_reviewers_email = [inst.email for inst in instance.reviewer_user.all()]
+        valid_non_reg_reviewers_email = instance.non_registered_reviewer_user
         requester_email = request.data.get('emails',None)
         requesting_status = request.data.get('status',None)
 
@@ -355,8 +356,6 @@ class UpdateContractDataAPIView(generics.UpdateAPIView):
                             user_reviewed_ids.append(User.objects.filter(email=email)[0].id)
                         elif requesting_status == 'REJECTED':
                             user_rejected_ids.append(User.objects.filter(email=email)[0].id)
-                    else:
-                        pass
                 else:
                     if email in valid_non_registered_approvers:
                         if requesting_status == 'ACCEPTED':
@@ -364,13 +363,12 @@ class UpdateContractDataAPIView(generics.UpdateAPIView):
                         elif requesting_status == 'REJECTED':
                             user_rejected_email.append(email)
 
-                    elif email in valid_reviewers_email:
+                    elif email in valid_non_reg_reviewers_email:
                         if requesting_status == 'ACCEPTED':
                             user_reviewed_mails.append(email)
                         elif requesting_status == 'REJECTED':
                             user_rejected_email.append(email)
-                    else:
-                        pass
+
             if user_approved_ids:
                 request.data['user_approved'] = user_approved_ids
             if user_reviewed_ids:

@@ -19,6 +19,7 @@ class ContractSerializer(serializers.ModelSerializer):
     other_part_user_approved_mail = serializers.SerializerMethodField()
     reviewer_mail = serializers.SerializerMethodField()
     user_reviewed_mail = serializers.SerializerMethodField()
+    user_rejected_mail = serializers.SerializerMethodField()
 
     class Meta:
         model = Contract
@@ -42,6 +43,9 @@ class ContractSerializer(serializers.ModelSerializer):
 
     def get_user_reviewed_mail(self, obj):
         return [user.email for user in obj.user_reviewed.all()]
+
+    def get_user_rejected_mail(self, obj):
+        return [user.email for user in obj.user_rejected.all()]
 
     def mail_contract_agreement_link(self, contract,expiration_date="28-08-2021"):
         d_mail_ids_opu = ", ".join([email for email in contract.non_registered_other_party_user])
