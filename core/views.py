@@ -17,6 +17,7 @@ from rest_framework.pagination import PageNumberPagination
 from django.contrib.auth import login
 from django.contrib.auth import logout as django_logout
 from core.models import User as core_user, Contract
+from django.contrib.auth.hashers import check_password
 
 APPLICATION_NAME = "core"
 
@@ -383,6 +384,11 @@ class UpdateContractDataAPIView(generics.UpdateAPIView):
             if user_rejected_email:
                request.data['rejected_by'] = user_rejected_email
 
+        else:
+            return Response(
+                {"status": False, "message": "email id not provided"}, status=status.HTTP_200_OK
+            )
+
         del request.data['emails']
         del request.data['status']
 
@@ -499,7 +505,45 @@ class UserDetailAPIView(generics.RetrieveAPIView):
 
     def post(self,request, *args, **kwargs):
         try:
-            pass
+            instance = User.objects.get(id=request.user.id)
+            password_exist = check_password(request.data['password'],instance.password)
+            if password_exist:
+                return Response(
+                    {"status": False, "message": "New password and Old password is same"},
+                    status=status.HTTP_200_OK,
+                )
+            else:
+                request.data['username'] = request.user.username
+                serializer = self.get_serializer(instance, data=request.data, partial=True)
+                serializer.is_valid(raise_exception=True)
+                serializer.save()
+                credentials = {
+                    "username": request.user.email,
+                    "password": request.data["password"],
+                }
+                user = authenticate(**credentials)
+                if user:
+                    logging.info(f"{user} generating access tokens")
+                    tokens = utils.get_tokens_for_user(user)
+                    return Response(
+                        {
+                            "message": "You have successfully Logged In",
+                            "status": True,
+                            "AccessToken": tokens["access"],
+                            "RefreshToken": tokens["refresh"],
+                        },
+                        status=status.HTTP_200_OK,
+                    )
+                else:
+                    logging.info(f"wrong credentials supplied")
+                    return Response(
+                        {
+                            "message": "email or password does not match, please enter correct details",
+                            "status": False,
+                        },
+                        status=status.HTTP_200_OK,
+                    )
+
         except Exception as e:
             return Response({"status": False, "message": e})
 
