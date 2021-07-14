@@ -141,12 +141,12 @@ class Contract(Base):
     def update_internal_approval_status(contract):
         print(f"updating status for the {contract.contract_name}")
         try:
-            non_registered_reviewer_users = contract.non_registered_reviewer_user
-            reviewer_users = contract.reviewer_user.all()
-
-            if not non_registered_reviewer_users and not reviewer_users:
-                contract.status = "internal_approved"
-                contract.save()
+            if contract.status == "pending":
+                non_registered_reviewer_users = contract.non_registered_reviewer_user
+                reviewer_users = contract.reviewer_user.all()
+                if not non_registered_reviewer_users and not reviewer_users:
+                    contract.status = "internal_approved"
+                    contract.save()
         except Exception as e:
             print(f"exception in updating status {contract.contract_name} : {e}")
             return False
@@ -155,12 +155,12 @@ class Contract(Base):
     def update_other_party_approval_status(contract):
         print(f"updating status for the {contract.contract_name}")
         try:
-
-            other_party_users = contract.other_party_user.all()
-            non_registered_other_party_users = contract.non_registered_other_party_user
-            if not other_party_users and not non_registered_other_party_users:
-                contract.status = "other_party_approved"
-                contract.save()
+            if contract.status=="internal_approved":
+                other_party_users = contract.other_party_user.all()
+                non_registered_other_party_users = contract.non_registered_other_party_user
+                if not other_party_users and not non_registered_other_party_users:
+                    contract.status = "other_party_approved"
+                    contract.save()
         except Exception as e:
             print(f"exception in updating status {contract.contract_name} : {e}")
             return False
