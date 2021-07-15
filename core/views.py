@@ -175,8 +175,12 @@ class UploadContract(generics.CreateAPIView):
             return Response({"status": False, "message": "status not provided"}, status=status.HTTP_400_BAD_REQUEST)
         queryset = Contract.objects.filter(created_by=self.request.user.id, status=contract_status)
         if queryset:
+
             try:
                 page = self.paginate_queryset(queryset)
+            except Exception as e:
+                return Response({"status": True, "message": e.default_detail}, status=e.status_code)
+            try:
                 if page is not None:
                     serializer = self.get_serializer(page, many=True)
                     return self.get_paginated_response(serializer.data)
@@ -609,3 +613,4 @@ class ForgotPasswordAPIView(generics.RetrieveUpdateAPIView):
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
+
