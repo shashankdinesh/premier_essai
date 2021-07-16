@@ -8,8 +8,9 @@ from django_common.auth_backends import User
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-
-from core.utils import upload_contract, listbucketfile, delete_contract_data, delete_file, check_user_validity
+import threading
+from core.utils import upload_contract, listbucketfile, delete_contract_data, delete_file, check_user_validity, \
+    contract_mail_body, send_contract_email
 from econtract import errors
 from core import serializers, utils
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -169,6 +170,14 @@ class UploadContract(generics.CreateAPIView):
     pagination_class = CustomPageNumberPagination
     permission_classes = (IsAuthenticated,)
 
+    def send_contract_mail(self,serializer):
+        mail_sent, msg = serializer.mail_contract_agreement_link(serializer.instance)
+        if mail_sent:
+            logging.info(msg)
+        else:
+            logging.info(msg)
+
+
     def get(self, request, *args, **kwargs):
         contract_status = self.request.GET.get('status',None)
         if not contract_status:
@@ -219,11 +228,8 @@ class UploadContract(generics.CreateAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        mail_sent,msg = serializer.mail_contract_agreement_link(serializer.instance)
-        if mail_sent:
-            logging.info(msg)
-        else:
-            logging.info(msg)
+        thread = threading.Thread(target=self.send_contract_mail, args=(serializer,))
+        thread.start()
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
@@ -269,6 +275,36 @@ class GetContractListAPIView(generics.ListAPIView):
 class UpdateContractDataAPIView(generics.UpdateAPIView):
     serializer_class = serializers.ContractSerializer
 
+    def send_contract_mail(self,serializer):
+        mail_sent, msg = serializer.mail_contract_agreement_link(serializer.instance)
+        if mail_sent:
+            logging.info(msg)
+        else:
+            logging.info(msg)
+
+    def send_contract_status_mail(self,contract=None,user=None,type=None,email=None,recievers=None):
+        if contract:
+            msg_body, subject = contract_mail_body(
+                senders_mail_id=contract.created_by.email,
+                file_name=contract.contract_name,
+                confirmation_url=f'https://econtract.cazicazi.com/page/preview/{contract.id}',
+                # expiration_date=expiration_date,
+                # register_url=register_url,
+                mail_type=type,
+            )
+
+            mail_sent = send_contract_email(
+                from_email=contract.created_by.email,
+                to_emails=recievers,
+                email_subject=subject,
+                html_content=msg_body,
+                sender_name=contract.created_by.first_name + " " + contract.created_by.last_name
+            )
+            if mail_sent:
+                logging.info(f"mail sent to {recievers}")
+            else:
+                logging.info(f"mail sent failed {recievers}")
+
     def get(self, request, *args, **kwargs):
         #import pdb;pdb.set_trace()
         try:
@@ -294,7 +330,7 @@ class UpdateContractDataAPIView(generics.UpdateAPIView):
 
                     serializer = self.get_serializer(instance[0])
 
-                    if (email in valid_approvers and instance[0].status=='internal_approved') or (email in valid_reviewers and instance[0].status=='pending'):
+                    if (email in valid_approvers and instance[0].status in ['internal_approved','other_party_rejected']) or (email in valid_reviewers and instance[0].status in ['pending','reviewer_rejected']):
                         return Response({"status": True, "data": serializer.data, "type": 'ARRIVED'},
                                         status=status.HTTP_200_OK)
                     elif (email in user_approved_con and instance[0].status=='other_party_approved') or (email in user_reviewed_con and instance[0].status=='internal_approved'):
@@ -399,14 +435,11 @@ class UpdateContractDataAPIView(generics.UpdateAPIView):
         )
         if serializer.is_valid(raise_exception=True):
             serializer.update(serializer.instance,serializer.validated_data)
-            serializer.remove_user(request,serializer.instance,valid_approvers,valid_reviewers)
+            serializer.remove_user(request,serializer.instance,valid_approvers,valid_reviewers,self.send_contract_status_mail)
             Contract.update_internal_approval_status(serializer.instance)
             Contract.update_other_party_approval_status(serializer.instance)
-            mail_sent, msg = serializer.mail_contract_agreement_link(serializer.instance)
-            if mail_sent:
-                logging.info(msg)
-            else:
-                logging.info(msg)
+            thread = threading.Thread(target=self.send_contract_mail, args=(serializer,))
+            thread.start()
             return Response(
                 {"status": True, "message": "Data Saved Successfully"},
                 status=status.HTTP_200_OK,
