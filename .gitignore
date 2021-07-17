@@ -60,6 +60,15 @@ coverage.xml
 local_settings.py
 db.sqlite3
 db.sqlite3-journal
+*/static/*
+*.pyc
+env
+uploads/
+upload/
+staticfiles/
+*.swp
+media/
+migrations/
 
 # Flask stuff:
 instance/
@@ -109,6 +118,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+local.py
 
 # Spyder project settings
 .spyderproject
@@ -127,3 +137,15 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Log files
+main.log*
+main_debug.log*
+cronjob.log
+
+##Editor Files##
+.vscode
+.idea/*
+*/.idea/*
+log
+
