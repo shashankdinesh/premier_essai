@@ -6,7 +6,7 @@ import json, requests, logging
 import os
 from django.utils.html import strip_tags
 
-def getpresignedUrl(bucket='e-contract-private',key='contract/sample.pdf'):
+def getpresignedUrl(bucket=os.environ.get("AWS_STORAGE_BUCKET_NAME"),key='contract/sample.pdf'):
     s3_client = boto3.client(
         "s3",
         aws_access_key_id=os.environ.get("AWS_ACCESS_KEY_ID"),
@@ -84,7 +84,7 @@ def get_bucket():
         aws_secret_access_key=os.environ.get("AWS_SECRET_ACCESS_KEY"),
         region_name=os.environ.get("AWS_REGION"),
     )
-    bucket = resource.Bucket("e-contract-private")
+    bucket = resource.Bucket(os.environ.get("AWS_STORAGE_BUCKET_NAME"))
     return bucket
 
 def upload_contract(filepath,filename):
@@ -93,7 +93,7 @@ def upload_contract(filepath,filename):
         bucket = get_bucket()
         bucket.upload_fileobj(filepath, prefix)
         logging.info("file uploaded success fully")
-        presigned_url = getpresignedUrl(bucket='e-contract-private',key=prefix)
+        presigned_url = getpresignedUrl(bucket=os.environ.get("AWS_STORAGE_BUCKET_NAME"),key=prefix)
         logging.info("presigned url generated")
         return presigned_url
     except Exception as e:
@@ -120,7 +120,7 @@ def delete_contract_data(prefixes):
             region_name=os.environ.get("AWS_REGION"),
         )
         print(prefixes)
-        s3_resource.meta.client.delete_objects(Bucket='e-contract-private', Delete={'Objects': prefixes})
+        s3_resource.meta.client.delete_objects(Bucket=os.environ.get("AWS_STORAGE_BUCKET_NAME"), Delete={'Objects': prefixes})
         return True
     except:
         return False
