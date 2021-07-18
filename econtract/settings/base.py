@@ -150,12 +150,12 @@ LOG_DIR = os.path.join(BASE_DIR, 'log')
 if not os.path.exists(LOG_DIR):
     os.makedirs(LOG_DIR)
 
-AWS_STORAGE_PUBLIC_BUCKET_NAME = os.environ.get('AWS_STORAGE_PUBLIC_BUCKET_NAME')
+AWS_STORAGE_PUBLIC_BUCKET_NAME = os.environ.get('AWS_STORAGE_PUBLIC_BUCKET_NAME',None)
 AWS_STORAGE_BUCKET_NAME = os.environ.get('AWS_STORAGE_BUCKET_NAME')
 AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
 AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
 AWS_REGION = os.environ.get('AWS_REGION')
-AWS_S3_CUSTOM_DOMAIN = f's3-ap-southeast-1.amazonaws.com/{AWS_STORAGE_PUBLIC_BUCKET_NAME}'
+AWS_S3_CUSTOM_DOMAIN = f's3-ap-southeast-1.amazonaws.com/{AWS_STORAGE_BUCKET_NAME}'
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
